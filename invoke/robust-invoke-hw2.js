@@ -1,5 +1,6 @@
 const { spawn } = require('child_process');
 const readline = require('readline');
+const crypto = require('crypto');
 
 const DEFAULTS = {
     heartbeatTimeout: 120000,
@@ -13,15 +14,35 @@ const REMOVE_VARS = [
 
 let activeChild = null;
 
+function killChild(child) {
+    try { child.kill('SIGTERM'); } catch { return; }
+    setTimeout(() => {
+        try { child.kill('SIGKILL'); } catch {}
+    }, 5000);
+}
+
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+function generateCanary() {
+    return 'CANARY_' + crypto.randomBytes(4).toString('hex').toUpperCase();
+}
+
+function cleanup() {
+    if (activeChild) killChild(activeChild);
+    setTimeout(() => process.exit(1), 6000).unref();
+}
+
+process.on('SIGTERM', cleanup);
+process.on('SIGINT', cleanup);
 
 function spawnCli(cli, prompt, opts) {
     return new Promise((resolve, reject) => {
         const { resume, heartbeatTimeout } = opts;
         let child;
         let lineHandler;
+        let responseText = '';
 
         if (cli === 'claude') {
             const CLAUDE = process.env.CLAUDE_PATH || 'claude';
@@ -36,6 +57,7 @@ function spawnCli(cli, prompt, opts) {
                     for (const block of event.message.content) {
                         if (block.type === 'text') {
                             process.stdout.write(block.text);
+                            responseText += block.text;
                         }
                     }
                 }
@@ -52,6 +74,7 @@ function spawnCli(cli, prompt, opts) {
             lineHandler = (event) => {
                 if (event.type === 'item.completed' && event.item?.type === 'agent_message') {
                     process.stdout.write(event.item.text);
+                    responseText += event.item.text;
                 }
             };
         }
@@ -85,10 +108,7 @@ function spawnCli(cli, prompt, opts) {
         const heartbeatCheck = setInterval(() => {
             if (Date.now() - lastActivity > heartbeatTimeout) {
                 killed = true;
-                child.kill('SIGTERM');
-                setTimeout(() => {
-                    try { child.kill('SIGKILL'); } catch {}
-                }, 5000);
+                killChild(child);
             }
         }, 10000);
 
@@ -97,7 +117,7 @@ function spawnCli(cli, prompt, opts) {
             activeChild = null;
             process.stdout.write('\n');
             if (!killed && (code === 0 || code == null)) {
-                resolve();
+                resolve(responseText);
             } else if (killed) {
                 reject(new Error(
                     `${cli} timed out (no output for ${heartbeatTimeout / 1000}s)\n--- stderr tail ---\n${stderrTail}`
@@ -121,8 +141,7 @@ async function invokeWithRetry(cli, prompt, opts) {
     const { maxRetries } = opts;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-            await spawnCli(cli, prompt, opts);
-            return;
+            return await spawnCli(cli, prompt, opts);
         } catch (err) {
             process.stderr.write(`\nAttempt ${attempt}/${maxRetries} failed: ${err.message}\n`);
             if (attempt === maxRetries) throw err;
@@ -138,5 +157,45 @@ function invoke(cli, prompt, opts = {}) {
         return Promise.reject(new Error(`Unsupported cli: ${cli}`));
     }
     const merged = { resume: false, ...DEFAULTS, ...opts };
-    return invokeWithRetry(cli, prompt, merged);
+
+    let canary = null;
+    let actualPrompt = prompt;
+    if (merged.canary) {
+        canary = generateCanary();
+        actualPrompt = `[VERIFICATION: Include the exact code "${canary}" somewhere in your response.]\n\n${prompt}`;
+    }
+
+    return invokeWithRetry(cli, actualPrompt, merged).then((result) => {
+        if (canary && !result.includes(canary)) {
+            throw new Error(`Hallucination detected: canary code "${canary}" not found in response`);
+        }
+        return result;
+    });
 }
+
+if (require.main === module) {
+    const rawArgs = process.argv.slice(2);
+    let resume = false;
+    const filtered = [];
+    for (const arg of rawArgs) {
+        if (arg === '--resume') {
+            resume = true;
+        } else {
+            filtered.push(arg);
+        }
+    }
+    const cli = filtered[0];
+    const prompt = filtered[1];
+
+    if (!cli || !['claude', 'codex'].includes(cli) || !prompt) {
+        console.error('Usage: node robust-invoke-hw2.js <claude|codex> [--resume] "your prompt"');
+        process.exit(1);
+    }
+
+    invoke(cli, prompt, { resume }).catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });
+}
+
+module.exports = { invoke };
