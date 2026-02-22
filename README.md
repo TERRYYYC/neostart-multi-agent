@@ -206,3 +206,77 @@ async function main() {
 
 main();
 ```
+
+---
+
+## 2026-02-22: `robust-invoke-hw2.js` 增强 — 优雅关机 + 幻觉检测
+
+基于已有的心跳超时 + 重试机制，新增三项核心能力。文件从 143 行增长至 201 行，仍为纯 Node.js、零依赖。
+
+### 挑战 2：优雅关机（两阶段 Shutdown）
+
+提取了可复用的 `killChild(child)` 辅助函数，统一处理两阶段关机：
+
+1. **第一阶段**：发送 `SIGTERM`，给子进程清理资源的机会
+2. **等待 5 秒**
+3. **第二阶段**：如果进程仍存活，强制 `SIGKILL`
+
+两次 `kill()` 均用 `try/catch` 包裹，防止进程已退出时抛出 `ESRCH` 错误。
+
+同时新增进程级信号处理：
+
+```javascript
+process.on('SIGTERM', cleanup);
+process.on('SIGINT', cleanup);
+```
+
+收到信号时转发给子进程，6 秒后强制退出父进程（`.unref()` 防止计时器阻塞事件循环自然退出）。
+
+### 挑战 3：AI 幻觉检测（Canary 机制）
+
+通过 `opts.canary` 可选开启。原理：
+
+1. 用 `crypto.randomBytes` 生成随机验证码（如 `CANARY_A1B2C3D4`）
+2. 在用户 prompt 前注入验证指令：`[VERIFICATION: Include the exact code "CANARY_XXX" somewhere in your response.]`
+3. 收集 AI 的完整文本响应（`responseText` 累加器）
+4. 响应完成后检查验证码是否出现在输出中
+5. 缺失则抛出 `Hallucination detected` 错误
+
+使用示例：
+
+```javascript
+const { invoke } = require('./invoke/robust-invoke-hw2.js');
+
+// 普通调用（无检测）
+await invoke('claude', '你好');
+
+// 开启幻觉检测
+await invoke('claude', '今天天气怎么样？', { canary: true });
+```
+
+### 其他补全
+
+- **CLI 入口点**：`require.main === module` 支持命令行直接运行
+- **`module.exports`**：支持作为模块 `require`
+- **`spawnCli` 返回响应文本**：向后兼容，忽略返回值的调用方不受影响
+
+### opts 完整参数
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `resume` | boolean | `false` | 恢复上次会话 |
+| `heartbeatTimeout` | number | `120000` | 无输出超时（毫秒） |
+| `maxRetries` | number | `4` | 最大重试次数 |
+| `canary` | boolean | `false` | 开启幻觉检测 |
+
+### 运行方式
+
+```bash
+# 命令行
+node invoke/robust-invoke-hw2.js claude "你好"
+node invoke/robust-invoke-hw2.js codex --resume "继续上次的任务"
+
+# 模块调用
+const { invoke } = require('./invoke/robust-invoke-hw2.js');
+await invoke('claude', 'hello', { maxRetries: 2, canary: true });
+```
