@@ -96,6 +96,20 @@ const child = spawn(CLAUDE, [...], {
 
 ---
 
+### 坑 4 (2026-02-22)：路径硬编码导致 `spawn ENOENT` 报错
+
+**现象**：代码迁移到新设备或环境更新后，程序执行直接抛出类似 `Error: spawn /Users/.../claude ENOENT` 的错误。
+
+**原因**：早期代码为了快速跑通，常在代码中硬编码 Claude CLI 的完整绝对路径（如 `.../claude-code/2.1.41/claude`）。一旦在新环境（如使用 Homebrew 全局安装至 `/opt/homebrew/bin/claude`）中该路径失效，Node.js `spawn` 就找不到指定的二进制文件从而报错。
+
+**解决方案**：避免硬编码绝对路径。默认直接使用 `'claude'` 命令，让系统通过全局 PATH 去解析，同时保留对 `CLAUDE_PATH` 环境变量的支持以便自定义：
+
+```js
+const CLAUDE = process.env.CLAUDE_PATH || 'claude';
+```
+
+---
+
 ## 环境变量
 
 | 变量 | 说明 |
@@ -154,4 +168,41 @@ git commit -m "add minimal Codex CLI wrapper script"
 git add git-readme.md
 git commit -m "update git-readme.md with commands used"
 git push origin main
+```
+
+---
+
+## 2026-02-22: 新增 `resume-invoke.js` 支持会话恢复
+
+基于统一封装的 `invoke.js`，新建了 `resume-invoke.js`，解决 CLI 调用时无法继承对话上下文的问题。
+
+### 核心特性
+
+通过利用底层工具（Claude 和 Codex）自身的上下文保存机制，在执行时附加特殊标志，以继续上一次（即当前目录下最近）的对话。
+
+- **Claude**: 当附加 `--resume` 标志时，脚本通过传递 `-c`（等同于 `--continue`）参数并在同目录下重用来继续对话。
+- **Codex**: 当附加 `--resume` 标志时，脚本使用 `exec resume --last` 命令恢复最新的一条会话记录（不再是默认的起新会话 `exec`）。
+
+### 使用示例
+
+**作为命令行脚本：**
+```bash
+node invoke/resume-invoke.js claude --resume "那我们刚刚是在聊什么？"
+node invoke/resume-invoke.js codex --resume "帮我把上一次你写的代码再优化一下"
+```
+
+**作为独立模块：**
+支持在第三个参数传入布尔值 `resume` 标识以控制是否继续上一次会话：
+```javascript
+const { invoke } = require('./invoke/resume-invoke.js');
+
+async function main() {
+    // 开启新会话
+    await invoke('claude', '写一个 hello world', false);
+    
+    // 恢复最近一次会话
+    await invoke('claude', '把它改成 python 版本', true);
+}
+
+main();
 ```
