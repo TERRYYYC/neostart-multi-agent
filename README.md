@@ -101,3 +101,57 @@ const child = spawn(CLAUDE, [...], {
 | 变量 | 说明 |
 |------|------|
 | `CLAUDE_PATH` | 覆盖 Claude CLI 二进制路径，用于多版本切换 |
+
+---
+
+# 2026-02-22 操作记录
+
+## codex-minimal —— 适配 Codex CLI 的最简封装
+
+参考 `claude-minimal/minimal-claude.js`，实现了适配 Codex CLI 的 `codex-minimal/minimal-codex.js`。
+
+### 核心差异
+
+| | claude-minimal | codex-minimal |
+|---|---|---|
+| CLI 调用 | `claude -p <prompt> --output-format stream-json --verbose` | `codex exec --json <prompt>` |
+| 文本事件 | `type === "assistant"` → `message.content[].text` | `type === "item.completed"` → `item.text` |
+| env 清理 | 需删除 Claude 相关嵌套检测变量 | 不需要 |
+
+### Codex NDJSON 事件格式
+
+```
+{"type":"thread.started","thread_id":"..."}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"Hello"}}
+{"type":"turn.completed","usage":{"input_tokens":7548,"cached_input_tokens":6528,"output_tokens":17}}
+```
+
+过滤条件：`type === "item.completed"` 且 `item.type === "agent_message"`。
+
+### 运行方式
+
+```bash
+node codex-minimal/minimal-codex.js "your prompt"
+```
+
+自定义 Codex CLI 路径：
+
+```bash
+CODEX_PATH=/path/to/codex node codex-minimal/minimal-codex.js "hello"
+```
+
+## Git 操作
+
+将新增文件提交并推送至 GitHub（不含已删除文件、不含 .claude 目录）：
+
+```bash
+git status
+git remote -v
+git ls-files --others --exclude-standard
+git add claude-minimal/ codex-minimal/ README2.md git-readme.md test
+git commit -m "add minimal Codex CLI wrapper script"
+git add git-readme.md
+git commit -m "update git-readme.md with commands used"
+git push origin main
+```
