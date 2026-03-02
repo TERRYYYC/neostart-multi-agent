@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FMA Chat — AI 聊天</title>
+  <style>
+    /* ── Reset & Variables ─────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-dim: #8b949e;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --user-bg: #1f6feb33;
+      --assistant-bg: #161b22;
+      --error: #f85149;
+      --radius: 12px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    header h1 {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .model-badge {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .new-chat-btn {
+      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .new-chat-btn:hover { background: var(--border); }
+
+    /* ── Messages Area ─────────────────────────────── */
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message {
+      max-width: 780px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      line-height: 1.65;
+      font-size: 14.5px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .message.user {
+      background: var(--user-bg);
+      border: 1px solid #1f6feb55;
+    }
+
+    .message.assistant {
+      background: var(--assistant-bg);
+      border: 1px solid var(--border);
+    }
+
+    .message.error {
+      background: #f8514922;
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+
+    .message-role {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .message.user .message-role { color: var(--accent); }
+
+    .typing-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 16px;
+      background: var(--accent);
+      vertical-align: text-bottom;
+      animation: blink 0.8s infinite;
+    }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* ── Welcome ───────────────────────────────────── */
+    .welcome {
+      text-align: center;
+      margin: auto;
+      color: var(--text-dim);
+    }
+
+    .welcome h2 {
+      font-size: 22px;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .welcome p { font-size: 14px; }
+
+    /* ── Input Area ────────────────────────────────── */
+    #input-area {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .input-wrapper {
+      max-width: 780px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    #message-input {
+      flex: 1;
+      resize: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14.5px;
+      padding: 12px 16px;
+      line-height: 1.5;
+      max-height: 200px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    #message-input:focus { border-color: var(--accent); }
+    #message-input::placeholder { color: var(--text-dim); }
+
+    #send-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    #send-btn:hover { background: var(--accent-hover); }
+    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Footer ────────────────────────────────────── */
+    .footer-info {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-dim);
+      padding: 6px;
+    }
+
+    /* ── Code Blocks ───────────────────────────────── */
+    .message code {
+      font-family: var(--mono);
+      font-size: 13px;
+      background: #0d1117;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    .message pre {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+
+    .message pre code {
+      background: none;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>
+      <span>&#x1f916;</span>
+      <span>FMA Chat</span>
+    </h1>
+    <div class="header-right">
+      <span class="model-badge" id="model-badge">claude</span>
+      <button class="new-chat-btn" onclick="newChat()">+ New Chat / 新对话</button>
+    </div>
+  </header>
+
+  <div id="messages">
+    <div class="welcome">
+      <h2>FMA Chat</h2>
+      <p>Type a message to start chatting with AI</p>
+      <p>输入消息开始与 AI 对话</p>
+    </div>
+  </div>
+
+  <div id="input-area">
+    <div class="input-wrapper">
+      <textarea
+        id="message-input"
+        rows="1"
+        placeholder="Type your message... / 输入消息..."
+        autofocus
+      ></textarea>
+      <button id="send-btn" onclick="sendMessage()">Send / 发送</button>
+    </div>
+  </div>
+
+  <div class="footer-info">
+    FMA v0.1.0 — CLI subprocess + SSE streaming
+  </div>
+
+  <script>
+    // ── State ──────────────────────────────────────
+    let conversationId = null;
+    let isStreaming = false;
+
+    const messagesEl = document.getElementById('messages');
+    const inputEl = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const modelBadge = document.getElementById('model-badge');
+
+    // ── Auto-resize textarea ───────────────────────
+    inputEl.addEventListener('input', () => {
+      inputEl.style.height = 'auto';
+      inputEl.style.height = Math.min(inputEl.scrollHeight, 200) + 'px';
+    });
+
+    // ── Enter to send (Shift+Enter for newline) ────
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // ── New Chat / 新对话 ──────────────────────────
+    function newChat() {
+      conversationId = null;
+      messagesEl.innerHTML = `
+        <div class="welcome">
+          <h2>FMA Chat</h2>
+          <p>Type a message to start chatting with AI</p>
+          <p>输入消息开始与 AI 对话</p>
+        </div>
+      `;
+      inputEl.focus();
+    }
+
+    // ── Add message to UI / 添加消息到界面 ─────────
+    function addMessageToUI(role, content) {
+      // 移除 welcome 信息 / Remove welcome message
+      const welcome = messagesEl.querySelector('.welcome');
+      if (welcome) welcome.remove();
+
+      const div = document.createElement('div');
+      div.className = `message ${role}`;
+
+      const roleLabel = document.createElement('div');
+      roleLabel.className = 'message-role';
+      roleLabel.textContent = role === 'user' ? 'You / 你' : 'AI';
+
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      contentDiv.textContent = content;
+
+      div.appendChild(roleLabel);
+      div.appendChild(contentDiv);
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+
+      return contentDiv;
+    }
+
+    // ── Send message / 发送消息 ────────────────────
+    async function sendMessage() {
+      const text = inputEl.value.trim();
+      if (!text || isStreaming) return;
+
+      isStreaming = true;
+      sendBtn.disabled = true;
+      inputEl.value = '';
+      inputEl.style.height = 'auto';
+
+      // 显示用户消息 / Show user message
+      addMessageToUI('user', text);
+
+      // 创建 assistant 消息占位 / Create assistant message placeholder
+      const contentDiv = addMessageToUI('assistant', '');
+      const cursor = document.createElement('span');
+      cursor.className = 'typing-cursor';
+      contentDiv.appendChild(cursor);
+
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            conversationId: conversationId,
+          }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error || `HTTP ${response.status}`);
+        }
+
+        // 读取 SSE 流 / Read SSE stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let fullText = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const jsonStr = line.slice(6).trim();
+            if (!jsonStr) continue;
+
+            try {
+              const event = JSON.parse(jsonStr);
+
+              if (event.type === 'init' && event.conversationId) {
+                conversationId = event.conversationId;
+              }
+
+              if (event.type === 'text' && event.content) {
+                fullText += event.content;
+                contentDiv.textContent = fullText;
+                contentDiv.appendChild(cursor);
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+              }
+
+              if (event.type === 'error') {
+                contentDiv.textContent = fullText || '';
+                const errorSpan = document.createElement('span');
+                errorSpan.style.color = 'var(--error)';
+                errorSpan.textContent = `\n[Error / 错误]: ${event.error}`;
+                contentDiv.appendChild(errorSpan);
+              }
+
+              if (event.type === 'done') {
+                cursor.remove();
+              }
+            } catch {
+              // 忽略无效 JSON / Ignore invalid JSON
+            }
+          }
+        }
+
+        // 确保 cursor 被移除 / Ensure cursor is removed
+        if (cursor.parentNode) cursor.remove();
+
+        // 如果没有收到任何文本 / If no text received
+        if (!fullText) {
+          contentDiv.textContent = '(No response received / 未收到响应)';
+        }
+
+      } catch (err) {
+        if (cursor.parentNode) cursor.remove();
+        contentDiv.textContent = '';
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'message error';
+        errorDiv.innerHTML = `<div class="message-role">ERROR / 错误</div><div>${err.message}</div>`;
+        messagesEl.appendChild(errorDiv);
+      } finally {
+        isStreaming = false;
+        sendBtn.disabled = false;
+        inputEl.focus();
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+    }
+
+    // ── Detect model from server response header ───
+    // 模型标识会在首次对话时更新 / Model badge updates on first chat
+  </script>
+
+</body>
+</html>

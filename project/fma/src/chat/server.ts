@@ -1,0 +1,255 @@
+// ============================================================
+// chat/server.ts — HTTP 服务器 + SSE 流式响应
+// HTTP server + SSE streaming response
+// ============================================================
+//
+// 零依赖：仅使用 Node.js 内置 http 模块
+// Zero dependencies: uses only Node.js built-in http module
+//
+// API 路由：
+// API Routes:
+//   POST /api/chat          — 发送消息并流式返回 / Send message and stream response
+//   GET  /api/conversations — 获取对话列表 / List conversations
+//   GET  /                  — 静态页面 / Static page (index.html)
+//
+// ============================================================
+
+import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { runCliStream } from './cli-runner.js';
+import {
+  createConversation,
+  getConversation,
+  addMessage,
+  listConversations,
+} from './conversation.js';
+import type { ModelProvider, StreamEvent } from './types.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// ── 请求体解析 / Request body parsing ──────────────────────────
+
+function readBody(req: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk: Buffer) => chunks.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(chunks).toString()));
+    req.on('error', reject);
+  });
+}
+
+// ── JSON 响应工具 / JSON response helpers ──────────────────────
+
+function jsonResponse(res: ServerResponse, status: number, data: unknown): void {
+  const body = JSON.stringify(data);
+  res.writeHead(status, {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+  });
+  res.end(body);
+}
+
+function errorResponse(res: ServerResponse, status: number, message: string): void {
+  jsonResponse(res, status, { error: message });
+}
+
+// ── CORS 预检 / CORS preflight ──────────────────────────────
+
+function handleCors(req: IncomingMessage, res: ServerResponse): boolean {
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    });
+    res.end();
+    return true;
+  }
+  return false;
+}
+
+// ── 路由处理 / Route handlers ────────────────────────────────
+
+/**
+ * POST /api/chat — 发送消息，SSE 流式响应
+ * Send a message, respond with SSE stream
+ *
+ * Request body: { message: string, conversationId?: string }
+ * Response: SSE stream of StreamEvent objects
+ */
+async function handleChat(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  const body = await readBody(req);
+  let parsed: { message?: string; conversationId?: string };
+
+  try {
+    parsed = JSON.parse(body) as { message?: string; conversationId?: string };
+  } catch {
+    errorResponse(res, 400, 'Invalid JSON body / 无效的 JSON 请求体');
+    return;
+  }
+
+  const message = parsed.message?.trim();
+  if (!message) {
+    errorResponse(res, 400, 'Message is required / 消息不能为空');
+    return;
+  }
+
+  const provider = (process.env.MODEL_PROVIDER ?? 'claude') as ModelProvider;
+
+  // 获取或创建对话 / Get or create conversation
+  let conv = parsed.conversationId
+    ? getConversation(parsed.conversationId)
+    : undefined;
+
+  if (!conv) {
+    conv = createConversation(provider);
+  }
+
+  // 追加用户消息 / Append user message
+  addMessage(conv.id, 'user', message);
+
+  // SSE 响应头 / SSE response headers
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'X-Conversation-Id': conv.id,
+  });
+
+  // 发送 conversationId 给客户端 / Send conversationId to client
+  res.write(`data: ${JSON.stringify({ type: 'init', conversationId: conv.id })}\n\n`);
+
+  // 启动 CLI 流 / Start CLI stream
+  const history = conv.messages.slice(0, -1); // 不包含当前这条 / Exclude current message
+  const stream = runCliStream(provider, message, history, conv.id);
+
+  let fullResponse = '';
+
+  stream.on('data', (event: StreamEvent) => {
+    if (event.type === 'text' && event.content) {
+      fullResponse += event.content;
+    }
+    res.write(`data: ${JSON.stringify(event)}\n\n`);
+  });
+
+  stream.on('end', () => {
+    // 追加 assistant 完整响应 / Append full assistant response
+    if (fullResponse) {
+      addMessage(conv.id, 'assistant', fullResponse);
+    }
+    res.end();
+  });
+}
+
+/**
+ * GET /api/conversations — 获取对话列表
+ * List all conversations
+ */
+function handleListConversations(_req: IncomingMessage, res: ServerResponse): void {
+  const convs = listConversations().map((c) => ({
+    id: c.id,
+    messageCount: c.messages.length,
+    lastMessage: c.messages.at(-1)?.content?.slice(0, 50) ?? '',
+    createdAt: c.createdAt,
+    modelProvider: c.modelProvider,
+  }));
+  jsonResponse(res, 200, convs);
+}
+
+/**
+ * GET /api/conversations/:id — 获取对话详情
+ * Get conversation detail
+ */
+function handleGetConversation(res: ServerResponse, id: string): void {
+  const conv = getConversation(id);
+  if (!conv) {
+    errorResponse(res, 404, 'Conversation not found / 对话不存在');
+    return;
+  }
+  jsonResponse(res, 200, conv);
+}
+
+/**
+ * GET / — 返回静态 HTML 页面
+ * Serve static HTML page
+ */
+async function handleStatic(res: ServerResponse): Promise<void> {
+  try {
+    const htmlPath = join(__dirname, '..', 'public', 'index.html');
+    const html = await readFile(htmlPath, 'utf-8');
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(html);
+  } catch {
+    errorResponse(res, 500, 'Failed to load page / 页面加载失败');
+  }
+}
+
+// ── 路由分发 / Router ───────────────────────────────────────
+
+async function router(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  if (handleCors(req, res)) return;
+
+  const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
+  const path = url.pathname;
+  const method = req.method ?? 'GET';
+
+  try {
+    // POST /api/chat
+    if (method === 'POST' && path === '/api/chat') {
+      await handleChat(req, res);
+      return;
+    }
+
+    // GET /api/conversations
+    if (method === 'GET' && path === '/api/conversations') {
+      handleListConversations(req, res);
+      return;
+    }
+
+    // GET /api/conversations/:id
+    const convMatch = path.match(/^\/api\/conversations\/([a-f0-9-]+)$/);
+    if (method === 'GET' && convMatch?.[1]) {
+      handleGetConversation(res, convMatch[1]);
+      return;
+    }
+
+    // GET / — 静态页面 / Static page
+    if (method === 'GET' && (path === '/' || path === '/index.html')) {
+      await handleStatic(res);
+      return;
+    }
+
+    // 404
+    errorResponse(res, 404, 'Not found');
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[server] Error handling ${method} ${path}:`, message);
+    errorResponse(res, 500, `Internal server error: ${message}`);
+  }
+}
+
+// ── 启动服务器 / Start server ────────────────────────────────
+
+export function startServer(port = 3000): void {
+  const server = createServer((req, res) => {
+    router(req, res).catch((err) => {
+      console.error('[server] Unhandled error:', err);
+      if (!res.headersSent) {
+        errorResponse(res, 500, 'Internal server error');
+      }
+    });
+  });
+
+  server.listen(port, () => {
+    const line = '─'.repeat(50);
+    console.log(`\n${line}`);
+    console.log(`  🚀  FMA Chat Server`);
+    console.log(`  📡  http://localhost:${port}`);
+    console.log(`  🤖  Model: ${process.env.MODEL_PROVIDER ?? 'claude'}`);
+    console.log(line);
+    console.log(`\n  Open your browser and start chatting!\n`);
+  });
+}
