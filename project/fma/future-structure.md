@@ -47,6 +47,38 @@ User Input (CLI)
 限制：单模型、无持久化、无反馈循环、无 UI
 ```
 
+```
+⚠️ 实际进展（2026-03-03 更新）：
+
+在 Phase 2 之前，已额外完成 Chat Mode 模块：
+
+  Browser ──POST /api/chat──► HTTP Server (Node.js built-in)
+      ▲                            │
+      │ SSE stream                 ▼  spawn()
+      │                     CLI Runner (claude/codex/gemini)
+      │                            │
+      └────────────────────────────┘
+
+新增能力（计划外，但为后续 Phase 铺路）：
+  ✅ Web UI（Chat 界面 + 侧边栏 Session 管理）
+  ✅ CLI subprocess 抽象层（多模型 spawn，含 session resume）
+  ✅ SSE 流式响应（非轮询）
+  ✅ HTTP API（POST /api/chat, GET/DELETE /api/conversations）
+  ✅ 对话持久化（JSON 文件，write-through cache）
+  ✅ Session 管理（创建/切换/删除/历史列表）
+
+已额外完成（v1.1，2026-03-03）：
+  ✅ 多模型实际切换（Codex: codex exec --json, Gemini: gemini -p --output-format stream-json）
+  ✅ Token 用量 + 响应计时（每条 assistant 消息显示 input/output/cached tokens + 耗时）
+  ✅ Bug 修复：Codex item.completed 解析 + Gemini 用户回显过滤
+
+仍然缺少：
+  ⏳ 重试 + 超时保护
+  ⏳ 反馈循环（Reviewer → Coder）
+  ⏳ 持久化迁移到 Redis（当前 JSON 文件为过渡方案）
+  ⏳ Agent Pipeline 模式的多模型支持（当前仅 Chat Mode 支持多模型）
+```
+
 ---
 
 ## 演进路线图 / Evolution Roadmap
@@ -58,6 +90,7 @@ User Input (CLI)
 #### Phase 2 — v0.2：多模型 + CLI Runner + 韧性
 **目标**：把 SDK 换成 CLI subprocess，同时支持 Claude / GPT-Codex / Gemini；加入重试和超时。
 **预估工作量**：2-3 天
+**⚠️ 实际进展（2026-03-03）**：Chat Mode 已提前实现多模型 CLI Runner（`cli-runner.ts`），支持 Claude / Codex / Gemini 的真实 CLI 调用。剩余工作：Agent Pipeline 模式（`core/agent.ts`）仍用 Anthropic SDK，尚未切换为 CLI subprocess；重试 + 超时保护尚未实现。
 
 **核心改动：**
 ```
@@ -235,6 +268,9 @@ Layer 3: 正确性证明
   - CI 必须通过才能部署
 ```
 
+**⚠️ 实际进展备注（2026-03-03）**：
+Chat Mode 已提前实现了部分 Phase 5 的内容：HTTP 服务器（Node.js 内置 http，非 Fastify）、REST API、SSE 流式响应。对话持久化已用 JSON 文件作为过渡方案（`.data/conversations/*.json`），`conversation.ts` 中所有磁盘操作函数已标注 `[Phase 5 升级点]`，届时只需将 `saveToDisk → Redis SET`、`removeFromDisk → Redis DEL`、`initStore → Redis SCAN`，导出函数签名不变。
+
 **参考**：p006 lesson-06（三层防御）、p004（AgentRuntime 全局单例设计）
 
 ---
@@ -353,6 +389,8 @@ Layer 3: 正确性证明
 | TD-04 | Filesystem Queue 无事务，进程崩溃可能丢任务 | Phase 3 | Phase 5 | 高 |
 | TD-05 | 图结构使用自研实现，长期需要评估是否迁移 LangGraph SDK | Phase 4 | 评估中 | 中 |
 | TD-06 | 无 API 鉴权（本地服务假设可信网络） | Phase 5 | Phase 7 | 低→中 |
+| TD-07 | 对话持久化用 JSON 文件，无事务保证，大量数据时性能下降 | v0.1 Chat Mode | Phase 5 | 低（单用户本地工具，短期够用） |
+| TD-08 | Chat Mode HTTP 服务器用 Node.js 内置 http，无中间件框架 | v0.1 Chat Mode | Phase 5 | 低（Phase 5 迁移到 Fastify） |
 
 ---
 
@@ -385,4 +423,6 @@ Layer 3: 正确性证明
 
 ---
 
-*版本：v1.0 | 日期：2026-03-01 | 作者：架构师视角（怀疑一切，验证一切）*
+*版本：v1.2 | 日期：2026-03-03 | 作者：架构师视角（怀疑一切，验证一切）*
+*v1.2 更新：反映多模型实际切换 + Token 用量 + Bug 修复的进展，Phase 2 补充实际进展备注*
+*v1.1 更新：反映 Chat Mode + JSON 持久化的实际进展，补充 TD-07/TD-08 技术债务*

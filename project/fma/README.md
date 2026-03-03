@@ -62,17 +62,33 @@
 fma/
 ├── src/
 │   ├── core/
-│   │   ├── types.ts        # 共享类型：TaskContext / AgentResult
-│   │   └── agent.ts        # 底层 Runner（可插拔层）— 当前：Anthropic SDK
+│   │   ├── types.ts          # 共享类型：TaskContext / AgentResult
+│   │   └── agent.ts          # 底层 Runner（可插拔层）— 当前：Anthropic SDK
 │   ├── agents/
-│   │   ├── planner.ts      # Planner Agent
-│   │   ├── coder.ts        # Coder Agent
-│   │   └── reviewer.ts     # Reviewer Agent
-│   └── index.ts            # Orchestrator + CLI 入口
+│   │   ├── planner.ts        # Planner Agent
+│   │   ├── coder.ts          # Coder Agent
+│   │   └── reviewer.ts       # Reviewer Agent
+│   ├── chat/                  # Chat Mode（Web 聊天模块）
+│   │   ├── cli-runner.ts     # CLI subprocess 抽象层（claude/codex/gemini）
+│   │   ├── conversation.ts   # 对话管理器（JSON 文件持久化 + 内存缓存）
+│   │   ├── server.ts         # HTTP 服务器 + SSE 流式响应
+│   │   ├── types.ts          # 聊天模块类型定义
+│   │   └── index.ts          # Chat Mode 入口
+│   ├── public/
+│   │   └── index.html        # Web UI（侧边栏 Session 管理 + 聊天界面）
+│   └── index.ts              # Orchestrator + CLI 入口（Agent Pipeline）
+├── .data/                     # 运行时数据（自动生成，已 gitignore）
+│   └── conversations/        # 对话持久化 JSON 文件
 ├── .env.example
 ├── package.json
 ├── tsconfig.json
-└── README.md
+├── README.md                  # 本文件（对外：项目介绍）
+├── AGENTS.md                  # AI Agent 快速上下文（对内：agent onboarding）
+├── CHANGELOG.md               # 变更记录（回滚参考）
+├── TROUBLESHOOTING.md         # 踩坑记录
+├── future-structure.md        # 演进架构方案（对内：施工图）
+├── xiaoming-experience.md     # 经验手册（对内：判断框架）
+└── meiyong-plan.md            # 文档关系索引（对内：元文档）
 ```
 
 ### 数据流 / Data Flow
@@ -90,9 +106,9 @@ ctx.review = reviewResult.output             // Reviewer 追加 / Reviewer appen
 
 ## 当前版本 / Current Version
 
-### v0.1.0 — MVP（2026-03-01）
+### v1.1 — MVP + Chat Mode + 多模型 + Token 统计（2026-03-01 ~ 03-03）
 
-**当前能力 / Current Capabilities**
+**Agent Pipeline 能力 / Agent Pipeline Capabilities**
 
 - ✅ 接收自然语言编程任务（CLI 参数输入）
 - ✅ **Planner Agent**：将任务拆解为结构化执行计划，严格不写代码
@@ -103,12 +119,23 @@ ctx.review = reviewResult.output             // Reviewer 追加 / Reviewer appen
 - ✅ 错误处理（API Key 缺失、API 错误、响应类型异常）
 - ✅ TypeScript strict mode，零 `any`，零类型错误
 
+**Chat Mode 能力 / Chat Mode Capabilities**（2026-03-02 ~ 03-03 新增）
+
+- ✅ Web UI 聊天界面（暗色主题，SSE 流式打字效果）
+- ✅ 侧边栏 Session 管理（创建/切换/删除/历史列表）
+- ✅ CLI subprocess 抽象层（支持 claude/codex/gemini，含 session resume）
+- ✅ 对话持久化（JSON 文件，write-through cache，重启不丢失）
+- ✅ HTTP API（POST /api/chat, GET/DELETE /api/conversations）
+- ✅ 移动端响应式布局（侧边栏可折叠）
+- ✅ **多模型实时切换**（Claude / Codex / Gemini，UI 下拉选择，每请求选模型）
+- ✅ **Token 用量 + 响应计时**（每条 assistant 消息显示 input/output/cached tokens + 耗时）
+
 **当前限制 / Known Limitations**
 
-- ⏳ 顺序执行，无并行（受依赖链约束，当前合理）
-- ⏳ 无持久化（进程退出后上下文丢失）
-- ⏳ 单模型（仅 Claude），无多模型调度
-- ⏳ 仅 CLI 输出，无 Web UI
+- ⏳ Agent Pipeline 顺序执行，无并行（受依赖链约束，当前合理）
+- ⏳ 无重试 + 超时保护
+- ⏳ 无反馈循环（Reviewer → Coder）
+- ⏳ 持久化为 JSON 文件，未来迁移到 Redis（Phase 5）
 - ⏳ 无异步任务队列
 
 **技术栈 / Tech Stack**
@@ -134,10 +161,16 @@ cp .env.example .env
 # 编辑 .env，填入：ANTHROPIC_API_KEY=sk-ant-xxxxx
 # 获取地址：https://console.anthropic.com
 
-# 3. 运行 / Run
+# 3a. Agent Pipeline 模式（CLI 一次性任务）
 npm start "write a function that validates email addresses"
 npm start "create a debounce utility with TypeScript generics"
-npm start "implement a simple LRU cache class"
+
+# 3b. Chat Mode（Web 聊天界面，支持多轮对话 + Session 管理）
+npm run chat
+# 打开浏览器访问 http://localhost:3000
+# 支持环境变量配置：
+#   PORT=8080 npm run chat          # 自定义端口
+#   MODEL_PROVIDER=gemini npm run chat  # 切换模型（需要对应 CLI 已安装）
 ```
 
 ---
@@ -170,13 +203,17 @@ npm start "implement a simple LRU cache class"
 | Phase | 目标 | 核心改动 | 参考来源 |
 |-------|------|----------|----------|
 | ✅ **v0.1 MVP** | 顺序流水线，3 Agent，< 200 行 | — | 当前 |
+| ✅ **Chat Mode** | Web UI + CLI Runner + Session 管理 + JSON 持久化 | 新增 `chat/` 模块 | 计划外（为后续 Phase 铺路） |
+| ✅ **多模型 + Token** | Chat Mode 真实多模型切换 + Token 用量显示 | `cli-runner.ts` 重写 | 提前实现 Phase 2 部分目标 |
 | **Phase 2** | CLI runner，多模型（Claude + Gemini + GPT） | 替换 `core/agent.ts` | p006 ADR-001 |
 | **Phase 3** | Filesystem Queue，Agent 异步解耦，断点续跑 | 替换 Orchestrator 调用方式 | p003 filesystem primitive |
-| **Phase 4** | 加 Tester Agent，Coder + Tester 并行执行 | Promise.all 并行激活 | p004 AgentRunner pattern |
-| **Phase 5** | Redis 持久化，跨进程历史查询，三层数据安全 | 加 Redis adapter | p006 lesson-06 三层防御 |
-| **Phase 6** | Web UI，SSE 实时推送每个 Agent 的执行状态 | Next.js + WorkspaceUIBus | p004 UIBus + p005 DeerFlow |
+| **Phase 4** | 图编排 + 反馈循环 + Tester Agent | DAG + 条件边 | LangGraph + p004 |
+| **Phase 5** | Redis 持久化（替换 JSON），本地后端服务 | JSON → Redis 迁移 | p006 lesson-06 三层防御 |
+| **Phase 6** | 正式 Web 前端，Agent DAG 可视化 | Next.js + XY Flow | p004 UIBus + p005 DeerFlow |
+
+> 详细演进方案见 `future-structure.md`，设计原则见 `xiaoming-experience.md`
 
 ---
 
 *Built on lessons from: p003 · p004 · p006*
-*Created: 2026-03-01 | Version: 0.1.0 | Language: TypeScript*
+*Created: 2026-03-01 | Updated: 2026-03-03 | Version: 1.1 | Language: TypeScript*

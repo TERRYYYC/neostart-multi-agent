@@ -81,6 +81,9 @@ xiaoming-experience.md  =  导师手册（How to think when you build it）
 | Agent 行为异常 | xiaoming-experience.md Ch.2 | — |
 | 估算工作量 | future-structure.md | — |
 | 新成员 onboarding | xiaoming-experience.md（先读） | future-structure.md（后读） |
+| AI Agent onboarding | AGENTS.md（先读） | core/types.ts + CHANGELOG.md |
+| 回滚某次变更 | CHANGELOG.md | — |
+| 遇到已知报错 | TROUBLESHOOTING.md | — |
 
 ---
 
@@ -102,18 +105,28 @@ xiaoming-experience.md  =  导师手册（How to think when you build it）
 
 ---
 
-## 与 README.md 的关系
+## 文档全景图 / Document Map
 
 ```
-README.md           ← 对外：项目介绍、快速开始、当前版本
-future-structure.md ← 对内：演进计划、Phase 目标
-xiaoming-experience ← 对内：判断框架、设计原则
-meiyong-plan.md     ← 对内：以上三者的索引和使用说明
+README.md              ← 对外：项目介绍、快速开始、当前版本
+AGENTS.md              ← 对内：AI Agent 快速上下文文件（2 分钟了解项目全貌）
+future-structure.md    ← 对内：演进计划、Phase 目标（施工图）
+xiaoming-experience.md ← 对内：判断框架、设计原则（导师手册）
+meiyong-plan.md        ← 对内：以上文档的索引和使用说明（元文档）
+CHANGELOG.md           ← 对内：每次变更的详细记录，含回滚方式（变更日志）
+TROUBLESHOOTING.md     ← 对内：开发踩坑记录和解决方案（排障手册）
 ```
 
 新人读文档顺序建议：
 ```
 README.md → meiyong-plan.md（本文）→ future-structure.md → xiaoming-experience.md
+（CHANGELOG.md 和 TROUBLESHOOTING.md 按需查阅）
+```
+
+AI Agent 读文档顺序建议：
+```
+AGENTS.md（快速上下文）→ core/types.ts → chat/types.ts → CHANGELOG.md → 动手
+（详细设计参考 future-structure.md 和 xiaoming-experience.md）
 ```
 
 ---
@@ -137,4 +150,6 @@ README.md → meiyong-plan.md（本文）→ future-structure.md → xiaoming-ex
 
 > 最后一句话：计划是为了服务行动，不是为了本身的完整性。如果计划妨碍了行动，舍弃计划。
 
-*版本：v1.0 | 日期：2026-03-01*
+*版本：v1.2 | 日期：2026-03-03*
+*v1.2 更新：补充 AGENTS.md 到文档索引，新增 AI Agent 阅读顺序建议*
+*v1.1 更新：补充 CHANGELOG.md 和 TROUBLESHOOTING.md 到文档索引*

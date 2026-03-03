@@ -24,6 +24,7 @@ import {
   getConversation,
   addMessage,
   listConversations,
+  deleteConversation,
 } from './conversation.js';
 import type { ModelProvider, StreamEvent } from './types.js';
 
@@ -61,7 +62,7 @@ function handleCors(req: IncomingMessage, res: ServerResponse): boolean {
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     });
     res.end();
@@ -81,10 +82,10 @@ function handleCors(req: IncomingMessage, res: ServerResponse): boolean {
  */
 async function handleChat(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const body = await readBody(req);
-  let parsed: { message?: string; conversationId?: string };
+  let parsed: { message?: string; conversationId?: string; provider?: string };
 
   try {
-    parsed = JSON.parse(body) as { message?: string; conversationId?: string };
+    parsed = JSON.parse(body) as { message?: string; conversationId?: string; provider?: string };
   } catch {
     errorResponse(res, 400, 'Invalid JSON body / 无效的 JSON 请求体');
     return;
@@ -96,7 +97,13 @@ async function handleChat(req: IncomingMessage, res: ServerResponse): Promise<vo
     return;
   }
 
-  const provider = (process.env.MODEL_PROVIDER ?? 'claude') as ModelProvider;
+  // 模型选择优先级：请求体 > 环境变量 > 默认 claude
+  // Provider priority: request body > env var > default claude
+  const validProviders: ModelProvider[] = ['claude', 'codex', 'gemini'];
+  const requestProvider = parsed.provider?.trim() as ModelProvider | undefined;
+  const provider: ModelProvider = (requestProvider && validProviders.includes(requestProvider))
+    ? requestProvider
+    : (process.env.MODEL_PROVIDER ?? 'claude') as ModelProvider;
 
   // 获取或创建对话 / Get or create conversation
   let conv = parsed.conversationId
@@ -106,6 +113,12 @@ async function handleChat(req: IncomingMessage, res: ServerResponse): Promise<vo
   if (!conv) {
     conv = createConversation(provider);
   }
+
+  // 已有对话使用其存储的 provider（保持一致性，需校验有效性）
+  // Existing conversation uses its stored provider (consistency, with validation)
+  const effectiveProvider: ModelProvider = validProviders.includes(conv.modelProvider as ModelProvider)
+    ? (conv.modelProvider as ModelProvider)
+    : provider;
 
   // 追加用户消息 / Append user message
   addMessage(conv.id, 'user', message);
@@ -124,13 +137,22 @@ async function handleChat(req: IncomingMessage, res: ServerResponse): Promise<vo
 
   // 启动 CLI 流 / Start CLI stream
   const history = conv.messages.slice(0, -1); // 不包含当前这条 / Exclude current message
-  const stream = runCliStream(provider, message, history, conv.id);
+  const startMs = Date.now(); // 服务端计时开始 / Server-side timing start
+  const stream = runCliStream(effectiveProvider, message, history, conv.id);
 
   let fullResponse = '';
 
   stream.on('data', (event: StreamEvent) => {
     if (event.type === 'text' && event.content) {
       fullResponse += event.content;
+    }
+    // done 事件前插入服务端计时 / Insert server-side timing before done event
+    if (event.type === 'done') {
+      const timing: StreamEvent = {
+        type: 'timing',
+        durationMs: Date.now() - startMs,
+      };
+      res.write(`data: ${JSON.stringify(timing)}\n\n`);
     }
     res.write(`data: ${JSON.stringify(event)}\n\n`);
   });
@@ -213,6 +235,17 @@ async function router(req: IncomingMessage, res: ServerResponse): Promise<void> 
     const convMatch = path.match(/^\/api\/conversations\/([a-f0-9-]+)$/);
     if (method === 'GET' && convMatch?.[1]) {
       handleGetConversation(res, convMatch[1]);
+      return;
+    }
+
+    // DELETE /api/conversations/:id — 删除对话 / Delete conversation
+    if (method === 'DELETE' && convMatch?.[1]) {
+      const deleted = deleteConversation(convMatch[1]);
+      if (deleted) {
+        jsonResponse(res, 200, { success: true });
+      } else {
+        errorResponse(res, 404, 'Conversation not found / 对话不存在');
+      }
       return;
     }
 

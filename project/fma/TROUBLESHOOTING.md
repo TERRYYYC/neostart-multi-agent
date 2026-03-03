@@ -107,6 +107,88 @@ stdio: ['ignore', 'pipe', 'pipe']
 
 ---
 
+## Issue #3: Codex CLI 解析器未匹配 `item.completed` 格式 / Codex Parser Missed `item.completed` Format
+
+**日期 / Date**: 2026-03-03
+**阶段 / Phase**: Chat Mode — 多模型支持
+
+**现象 / Symptom**:
+切换到 Codex 模型后，Web UI 显示空白回复，无任何文本输出。
+
+**原因 / Cause**:
+`parseCodexLine()` 期望顶层 `text`/`content` 字段，但真实 Codex CLI（`codex exec --json`）的输出格式为嵌套结构：
+```json
+{"type":"item.completed","item":{"type":"agent_message","text":"actual response here"}}
+```
+解析器未处理 `item.completed` 事件类型，导致所有有效内容被跳过。
+
+**解决 / Solution**:
+在 `parseCodexLine()` 中新增 `item.completed` 事件处理分支：
+- 检查 `raw.type === 'item.completed'`
+- 验证 `raw.item?.type === 'agent_message'`（跳过 `reasoning` 类型）
+- 从 `raw.item.text` 提取文本内容
+
+**教训 / Lesson**:
+- Codex CLI 使用嵌套事件结构（`item.completed` → `item.text`），不是顶层字段
+- CLI 文档与实际输出可能不一致，务必用真实日志验证解析器
+- 先跑一次 `codex exec --json "hi" | tee codex-output.jsonl` 确认真实格式
+
+---
+
+## Issue #4: Gemini CLI 用户回显导致消息污染 / Gemini CLI User Echo Causes Message Pollution
+
+**日期 / Date**: 2026-03-03
+**阶段 / Phase**: Chat Mode — 多模型支持
+
+**现象 / Symptom**:
+Gemini 回复前缀包含用户输入，例如用户发 "hi"，回复显示为 "hiHello!" 而非 "Hello!"。多轮对话后越来越严重（历史滚雪球效应）。
+
+**原因 / Cause**:
+Gemini CLI（`gemini -p --output-format stream-json`）在输出 assistant 回复之前，会先回显用户消息：
+```json
+{"type":"message","role":"user","content":"hi"}
+{"type":"message","role":"assistant","content":"Hello!"}
+```
+`parseGeminiLine()` 未按 `role` 字段过滤，导致 user 回显也被当作 assistant 文本拼接。被污染的 assistant 消息存入历史后，下轮作为上下文发回 CLI，形成累积。
+
+**解决 / Solution**:
+在 `parseGeminiLine()` 中新增 role 过滤：
+```typescript
+if (raw.role && raw.role !== 'assistant') return null;
+```
+
+**教训 / Lesson**:
+- Gemini CLI 会回显用户消息，必须按 `role` 字段过滤
+- 多轮对话中，解析器的 bug 会通过历史上下文产生滚雪球效应
+- 测试多模型支持时，至少进行 3 轮对话才能暴露累积性问题
+
+---
+
+## Issue #5: Gemini CLI stderr ECONNRESET 错误 / Gemini CLI stderr ECONNRESET Error
+
+**日期 / Date**: 2026-03-03
+**阶段 / Phase**: Chat Mode — 多模型支持
+
+**现象 / Symptom**:
+Gemini 正常回复后，服务端 stderr 出现如下错误：
+```
+Error: read ECONNRESET
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:217:20)
+    ... Gemini internal stack trace ...
+```
+
+**原因 / Cause**:
+这是 Gemini CLI 内部的遥测（telemetry）模块在上报使用数据时遇到的网络连接重置错误。与用户的对话内容和功能完全无关。Gemini CLI 进程在主要任务（回复用户）完成后，尝试向 Google 遥测服务器发送数据，此时网络连接被重置。
+
+**解决 / Solution**:
+**无需修复**。这是 Gemini CLI 的已知行为，不影响功能。可以在 `cli-runner.ts` 的 stderr 处理中忽略此类错误，或仅在 debug 模式下打印。
+
+**教训 / Lesson**:
+- CLI 工具的 stderr 不一定代表致命错误，也可能是内部遥测 / 诊断信息
+- 已记录在 AGENTS.md 常见陷阱 #7
+
+---
+
 ## 通用建议 / General Advice
 
 1. **在目标机器上安装依赖** — `node_modules` 不能跨平台共享

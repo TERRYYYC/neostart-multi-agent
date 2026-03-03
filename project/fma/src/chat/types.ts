@@ -37,15 +37,22 @@ export interface ChatRequest {
  * CLI Runner 的流式输出事件
  * Streaming output event from CLI Runner
  *
- * claude --output-format stream-json 的输出格式参考：
- * Each line is a JSON object with varying structures.
- * We normalize to this union type.
+ * 各 CLI 的输出格式各异，统一归一化为此联合类型
+ * Different CLIs have different output formats, normalized to this union type
  */
 export interface StreamEvent {
-  type: 'text' | 'error' | 'done' | 'usage';
+  type: 'text' | 'error' | 'done' | 'usage' | 'timing';
   content?: string;
   error?: string;
-  usage?: { inputTokens: number; outputTokens: number };
+  /** Token 用量（由 CLI 解析器提取） / Token usage (extracted by CLI parsers) */
+  usage?: {
+    inputTokens: number;
+    outputTokens: number;
+    cachedTokens?: number;     // 缓存命中的 token 数 / cached input tokens
+    totalTokens?: number;      // 总 token 数（部分 provider 提供）/ total tokens (some providers)
+  };
+  /** 响应耗时（由服务端计算）/ Response duration (calculated server-side) */
+  durationMs?: number;
 }
 
 /**
