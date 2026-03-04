@@ -1,0 +1,27 @@
+{
+  "id": "0695bc56-c0db-415f-b9c6-898751065ea5",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi",
+      "timestamp": 1772576633037
+    },
+    {
+      "role": "assistant",
+      "content": "Hello! I'm ready to assist with your software engineering tasks. How can I help you with this codebase today?",
+      "timestamp": 1772576644194
+    },
+    {
+      "role": "user",
+      "content": "你使用的什么模型？",
+      "timestamp": 1772576657761
+    },
+    {
+      "role": "assistant",
+      "content": "我目前使用的是 **gemini-3-flash-preview** 模型，运行在 Gemini CLI **0.29.5** 版本之上。",
+      "timestamp": 1772576720784
+    }
+  ],
+  "createdAt": 1772576633036,
+  "modelProvider": "gemini"
+}

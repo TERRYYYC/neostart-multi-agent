@@ -29,11 +29,13 @@ import { randomUUID } from 'node:crypto';
 import { mkdirSync, writeFileSync, readFileSync, readdirSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Message, Conversation } from './types.js';
+import { childLogger } from './logger.js';
 
 // ── 存储路径 / Storage path ───────────────────────────────────
 // .data/conversations/{uuid}.json
 // [Phase 5 升级点] 替换为 Redis connection config
 const DATA_DIR = join(process.cwd(), '.data', 'conversations');
+const logger = childLogger({ component: 'conversation' });
 
 // ── 内存缓存 / In-memory cache ───────────────────────────────
 const store = new Map<string, Conversation>();
@@ -54,7 +56,7 @@ function saveToDisk(conv: Conversation): void {
   } catch (err) {
     // 磁盘写入失败不中断服务，打印警告
     // Disk write failure should not crash the server
-    console.error(`[conversation] Failed to save ${conv.id} to disk:`, err);
+    logger.error('conversation.save_failed', { conversationId: conv.id }, err);
   }
 }
 
@@ -72,7 +74,7 @@ function removeFromDisk(id: string): void {
   } catch (err) {
     // 文件可能已经不存在，忽略
     // File might already be gone, ignore
-    console.error(`[conversation] Failed to remove ${id} from disk:`, err);
+    logger.error('conversation.remove_failed', { conversationId: id }, err);
   }
 }
 
@@ -105,22 +107,26 @@ function initStore(): void {
           store.set(conv.id, conv);
           loaded++;
         } else {
-          console.warn(`[conversation] Skipping invalid file: ${file} (missing id or messages)`);
+          logger.warn('conversation.invalid_file_skipped', {
+            file,
+            reason: 'missing id or messages',
+          });
           skipped++;
         }
       } catch (parseErr) {
         // JSON 损坏 — 跳过，不中断
         // Corrupted JSON — skip, don't crash
-        console.warn(`[conversation] Skipping corrupted file: ${file}`, parseErr);
+        logger.warn('conversation.corrupted_file_skipped', { file });
+        logger.error('conversation.corrupted_file_details', { file }, parseErr);
         skipped++;
       }
     }
   } catch (dirErr) {
-    console.error(`[conversation] Failed to read data directory:`, dirErr);
+    logger.error('conversation.read_dir_failed', { dataDir: DATA_DIR }, dirErr);
   }
 
   if (loaded > 0 || skipped > 0) {
-    console.log(`[conversation] Loaded ${loaded} conversations from disk (${skipped} skipped)`);
+    logger.info('conversation.store_initialized', { loaded, skipped });
   }
 }
 
@@ -144,6 +150,7 @@ export function createConversation(modelProvider: string): Conversation {
   };
   store.set(conv.id, conv);
   saveToDisk(conv);
+  logger.info('conversation.created', { conversationId: conv.id, modelProvider });
   return conv;
 }
 
@@ -189,6 +196,12 @@ export function addMessage(
 
   conv.messages.push(msg);
   saveToDisk(conv);
+  logger.debug('conversation.message_added', {
+    conversationId,
+    role,
+    contentChars: content.length,
+    messageCount: conv.messages.length,
+  });
   return msg;
 }
 
@@ -200,6 +213,9 @@ export function deleteConversation(id: string): boolean {
   const deleted = store.delete(id);
   if (deleted) {
     removeFromDisk(id);
+    logger.info('conversation.deleted', { conversationId: id });
+  } else {
+    logger.warn('conversation.delete_miss', { conversationId: id });
   }
   return deleted;
 }

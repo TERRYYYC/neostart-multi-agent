@@ -1,0 +1,12 @@
+{
+  "id": "07abfca9-4d3b-4671-87c5-46cc6c1c3010",
+  "messages": [
+    {
+      "role": "user",
+      "content": "test",
+      "timestamp": 1772577536313
+    }
+  ],
+  "createdAt": 1772577536312,
+  "modelProvider": "gemini"
+}

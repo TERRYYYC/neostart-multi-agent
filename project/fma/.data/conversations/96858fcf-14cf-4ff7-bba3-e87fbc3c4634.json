@@ -1,0 +1,27 @@
+{
+  "id": "96858fcf-14cf-4ff7-bba3-e87fbc3c4634",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi",
+      "timestamp": 1772656723082
+    },
+    {
+      "role": "assistant",
+      "content": "hi",
+      "timestamp": 1772656724482
+    },
+    {
+      "role": "user",
+      "content": "hi，你记得我们之前在聊什么吗？",
+      "timestamp": 1772656746603
+    },
+    {
+      "role": "assistant",
+      "content": "记得，这个会话里你之前说了两次 `hi`，然后问我：`“hi，你记得我们之前在聊什么吗？”`。\n\n如果你是指更早、当前会话之外的聊天，我这边默认是看不到的；你可以贴一点上下文，我就能接着聊。",
+      "timestamp": 1772656750842
+    }
+  ],
+  "createdAt": 1772656723079,
+  "modelProvider": "codex"
+}

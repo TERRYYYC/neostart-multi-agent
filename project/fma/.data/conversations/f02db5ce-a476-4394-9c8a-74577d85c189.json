@@ -1,0 +1,17 @@
+{
+  "id": "f02db5ce-a476-4394-9c8a-74577d85c189",
+  "messages": [
+    {
+      "role": "user",
+      "content": "test",
+      "timestamp": 1772573591337
+    },
+    {
+      "role": "assistant",
+      "content": "Working.",
+      "timestamp": 1772573599592
+    }
+  ],
+  "createdAt": 1772573591336,
+  "modelProvider": "claude"
+}

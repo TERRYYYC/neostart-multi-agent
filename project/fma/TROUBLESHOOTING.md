@@ -189,6 +189,143 @@ Error: read ECONNRESET
 
 ---
 
+## Issue #6: IME 输入法导致发送后输入框残留文字 / IME Composition Causes Input Not Cleared After Send
+
+**日期 / Date**: 2026-03-04
+**阶段 / Phase**: Chat Mode — Web UI
+
+**现象 / Symptom**:
+使用中文输入法（或其他 CJK IME）时，发送消息后输入框仍残留已发送的文字。用英文输入法则无此问题。
+
+**原因 / Cause**:
+`keydown` 事件监听器未检查 IME 组合状态。CJK 输入法下，即使输入英文字母也会经过 composition 过程。按 Enter 时事件触发顺序为：
+
+```
+1. keydown (Enter)  ← sendMessage() 被调用，inputEl.value = '' 清空输入框
+2. compositionend   ← IME 提交组合文字，把文字重新写回输入框
+```
+
+`sendMessage()` 在步骤 1 清空了输入框，但步骤 2 的 `compositionend` 又把文字写回来了。
+
+**解决 / Solution**:
+在 `index.html` 中添加 IME 组合状态跟踪，并在 `keydown` 判断中双重检查：
+
+```javascript
+// 跟踪 IME 组合状态
+let isComposing = false;
+inputEl.addEventListener('compositionstart', () => { isComposing = true; });
+inputEl.addEventListener('compositionend', () => { isComposing = false; });
+
+// Enter 发送时检查 IME 状态
+inputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey && !isComposing && !e.isComposing) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+```
+
+**教训 / Lesson**:
+- 任何 `keydown` 的 Enter 处理都必须考虑 IME 组合状态（`compositionstart/end` 或 `e.isComposing`）
+- 这不仅影响中文用户——日文、韩文、甚至某些欧洲语言输入法也有 composition 过程
+- 使用双重检查（手动 `isComposing` + 原生 `e.isComposing`）确保跨浏览器兼容
+- 已记录在 AGENTS.md 常见陷阱 #8
+
+---
+
+## Note #1: Codex CLI 首轮 ~10K input tokens 属于正常现象 / Codex CLI ~10K Input Tokens on First Turn Is Expected
+
+**日期 / Date**: 2026-03-04
+**阶段 / Phase**: Chat Mode — Token 用量分析
+**性质 / Nature**: ⚠️ **不是 Bug / NOT a bug** — 这是 Codex CLI 的固有行为。
+
+**现象 / Symptom**:
+使用 Codex provider 时，即使第一轮对话只发 "hi"，也会消耗约 10,306 input tokens（其中 6,528 cached）。看起来像是 token 泄漏，但实际不是。
+
+**分析 / Analysis**:
+Token 分解：
+- Codex CLI 内部 system prompt: **~9,700 tokens** — 这是 Codex CLI 工具自动注入的，用户无法控制或修改
+- 用户消息 "hi": ~5 tokens
+- Prompt 格式化开销: ~500 tokens
+
+作为对比，Claude CLI 也有内部 system prompt（估计几千 tokens），但 Claude 支持 `--session-id` + `--resume`，多轮对话不需要重复发送历史，token 增长更可控。
+
+**为什么不是 Bug / Why This Is Not a Bug**:
+- 这是 Codex CLI 工具的设计决策，不是 FMA 代码的问题
+- 内部 system prompt 包含 Codex 的能力说明、安全规则等，是 CLI 正常运行所必需的
+- 6,528 cached tokens 说明 Codex 已经在利用 prompt caching 优化，连续请求时不会重复计费
+
+**缓解措施 / Mitigations**:
+1. **已实现**: `buildPromptWithHistory()` 双重截断策略（轮数限制 + 单条字符截断），控制历史拼接部分的 token 增长。见 CHANGELOG "历史消息截断优化"。
+2. **可选**: 日常开发优先使用 Claude provider（支持 session resume，多轮 token 不膨胀）
+3. **未来**: 如需根本解决，可考虑直接用 OpenAI SDK 调 API（绕过 CLI 的内部 system prompt），但需要额外集成工作
+
+**相关环境变量 / Related Environment Variables**:
+- `MAX_HISTORY_MESSAGES` — 历史消息最大条数（默认 10，最小 2）
+- `MAX_MESSAGE_CHARS` — 单条消息最大字符数（默认 2000，最小 100）
+
+---
+
+## Issue #7: CLI 子进程挂住或变成孤儿进程 / CLI Subprocess Hangs or Becomes Orphan
+
+**日期 / Date**: 2026-03-05
+**阶段 / Phase**: Chat Mode — CLI Runner 健壮性
+
+**现象 / Symptom**:
+两种可能的表现：
+1. **挂住**: Web UI 一直显示 loading，无文本输出，也不报错。SSE 连接无限等待。
+2. **孤儿进程**: 用 `Ctrl+C` 停止服务器后，`ps aux | grep claude` 仍然能看到 claude/codex/gemini 进程在运行，持续消耗 API 费用。
+
+**原因 / Cause**:
+1. **挂住**: CLI 子进程可能因为网络断开、API 服务中断、内部死锁等原因停止输出，但进程本身不退出。没有心跳检测的话，调用方无法感知这种状态。
+2. **孤儿进程**: Node.js 的 `spawn()` 创建的子进程在父进程退出后会成为 init 进程的子进程，继续运行直到自行退出。如果没有注册 SIGTERM/SIGINT 处理器来清理子进程，它们会变成孤儿。
+
+**解决 / Solution**:
+已在 `cli-runner.ts` 中实现四项防护机制（参考 `robust-invoke-hw2.js`）：
+
+1. **心跳超时**: 每 10 秒检查子进程最后活动时间，超过阈值则强制终止
+   ```bash
+   # 调整超时时间（默认 120 秒）
+   CLI_HEARTBEAT_TIMEOUT=60000 npm run chat  # 改为 60 秒
+   ```
+
+2. **优雅进程清理**: SIGTERM/SIGINT 信号处理器自动清理所有活跃子进程
+   ```bash
+   # 验证清理是否生效
+   npm run chat &
+   # 发送一条消息，等 CLI 开始运行
+   kill -TERM $!
+   # 等 6 秒后检查是否还有残留进程
+   ps aux | grep -E 'claude|codex|gemini' | grep -v grep
+   ```
+
+3. **自动重试**: 瞬态错误（超时、spawn 失败）自动重试，不可重试错误（认证失败）立即抛出
+   ```bash
+   # 调整重试次数（默认 3 次）
+   CLI_MAX_RETRIES=5 npm run chat
+   ```
+
+4. **stderr 滑动窗口**: 只保留最后 2000 字符，防止内存泄漏
+
+**手动清理残留进程 / Manual Cleanup**:
+```bash
+# 查找残留的 CLI 子进程
+ps aux | grep -E 'claude|codex|gemini' | grep -v grep
+
+# 终止所有残留进程
+pkill -f 'claude -p'
+pkill -f 'codex exec'
+pkill -f 'gemini -p'
+```
+
+**教训 / Lesson**:
+- 任何长时间运行的子进程调用都必须有超时保护，不能假设子进程一定会正常退出
+- 父进程退出时必须主动清理子进程，不能依赖操作系统的默认行为
+- `robust-invoke-hw2.js` 提供了一个优秀的参考实现：心跳 + SIGTERM→SIGKILL 两段式终止 + 重试退避
+- 已记录在 AGENTS.md 常见陷阱 #9、#10
+
+---
+
 ## 通用建议 / General Advice
 
 1. **在目标机器上安装依赖** — `node_modules` 不能跨平台共享
@@ -198,3 +335,5 @@ Error: read ECONNRESET
    claude -p "hi" --output-format stream-json --verbose 2>/dev/null | tee output.jsonl
    ```
 4. **保留调试日志** — 上线前可以移除，但开发阶段 `[cli-runner:stdout]` 日志极有价值
+5. **键盘事件必须考虑 IME** — 任何 `keydown` 的 Enter/Space 等处理都要检查 `e.isComposing`，否则 CJK 用户体验会出问题
+6. **子进程必须有超时和清理** — 任何 `spawn()` 调用都要配套心跳检测 + 信号处理器，参考 `cli-runner.ts` 中的 `heartbeatCheck` 和 `activeChildren` 模式

@@ -101,6 +101,8 @@ fma/
 - ✅ AbortController for safe stream switching between sessions
 - ✅ Multi-model support — Claude / Codex / Gemini CLI real integration (UI selector + per-request provider)
 - ✅ Token usage + timing display — each assistant message shows input/output tokens, cached tokens, response duration
+- ✅ CLI robustness — heartbeat timeout (120s), graceful process cleanup (SIGTERM→SIGKILL), auto-retry with backoff (max 3), stderr sliding window (2000 chars)
+- ✅ CLI 健壮性 — 心跳超时（120s）、优雅进程清理、自动重试退避（最多 3 次）、stderr 滑动窗口（2000 字符）
 
 **⚠️ Known Issues / 已知问题**:
 - Multi-model support still has bugs that need further investigation and fixing. Codex and Gemini parsers have been corrected for known issues (see Pitfalls #5–#7), but edge cases likely remain. Next session should do thorough end-to-end testing with all three providers.
@@ -108,7 +110,7 @@ fma/
 
 **Next up / 下一步** (see `future-structure.md` for details):
 - **Priority**: Fix remaining multi-model bugs (end-to-end test all 3 providers, verify token usage accuracy)
-- Phase 2 remaining: Retry with exponential backoff, timeout protection, cost comparison logging
+- Phase 2 remaining: Cost comparison logging across providers
 - Phase 3: Filesystem queue, async agents, checkpoint/resume
 - Phase 4: Graph orchestration + feedback loops + Tester Agent
 
@@ -144,6 +146,9 @@ fma/
 5. **Codex output format**: Codex `exec --json` uses `item.completed` events with text nested in `item.text`, NOT top-level `text`/`content`. Must check `item.type === "agent_message"` (skip `"reasoning"`).
 6. **Gemini user echo**: Gemini CLI echoes user messages as `{"type":"message","role":"user"}` before assistant reply. Parser MUST filter `role !== "assistant"` or responses get polluted (e.g., "hiHello!" bug).
 7. **Gemini stderr noise**: Gemini CLI emits telemetry errors to stderr (`ECONNRESET` to googleapis.com). These are harmless — don't treat as fatal errors.
+8. **IME composition & keydown**: When using CJK input methods (中文/日文/韩文), `keydown` Enter can fire BEFORE `compositionend`. Always check `e.isComposing` or track `compositionstart/end` to prevent premature sends. See fix in `index.html` keydown handler.
+9. **CLI subprocess can hang silently**: A spawned CLI process may stop producing output without exiting (network stall, deadlock, etc.). Without heartbeat monitoring, the SSE connection hangs indefinitely. The `cli-runner.ts` heartbeat timer checks every 10s and kills after `CLI_HEARTBEAT_TIMEOUT` (default 120s).
+10. **Orphan CLI processes on exit**: If the Node.js server process is killed (SIGTERM/SIGINT), spawned CLI children become orphan processes that continue running and consuming API credits. The `cli-runner.ts` signal handlers clean up all active children on exit. Always use `activeChildren` Set to track spawned processes.
 
 ---
 
@@ -160,5 +165,7 @@ fma/
 
 ---
 
-*Version: v1.1 | Updated: 2026-03-03 | Created: 2026-03-03*
+*Version: v1.3 | Updated: 2026-03-05 | Created: 2026-03-03*
+*v1.3: Added CLI robustness (heartbeat, retry, process cleanup), Pitfalls #9–#10*
+*v1.2: Added IME composition pitfall (Pitfall #8)*
 *v1.1: Added multi-model support, token usage display, Codex/Gemini pitfalls*

@@ -1,0 +1,37 @@
+{
+  "id": "6bfb1644-8420-463b-b2ec-ede009871cc7",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi",
+      "timestamp": 1772656577263
+    },
+    {
+      "role": "assistant",
+      "content": "Hi. What do you want to work on in the FMA project right now?",
+      "timestamp": 1772656580737
+    },
+    {
+      "role": "user",
+      "content": "hi你好",
+      "timestamp": 1772656585634
+    },
+    {
+      "role": "assistant",
+      "content": "你好！我在。  \n你想继续做 FMA 的哪一块？比如多模型 bug 排查、端到端测试，或者新功能开发。",
+      "timestamp": 1772656587606
+    },
+    {
+      "role": "user",
+      "content": "为什么我有那么多 input",
+      "timestamp": 1772656600546
+    },
+    {
+      "role": "assistant",
+      "content": "你这个问题大概率是在说“为什么每次请求的 **input tokens** 很高”。\n\n在 FMA 现在这套 Chat/CLI 架构里，常见原因是：\n\n1. 每轮都会带上历史上下文  \n会话越长，输入就越大（尤其是多轮对话不做裁剪时）。\n\n2. 系统提示词很长  \n像 `AGENTS.md`、角色规则、工具说明这些都会算进 input。\n\n3. 你贴了大段代码/日志  \n这些原文会直接进入模型输入，token 涨得很快。\n\n4. 多模型适配层可能重复拼接了内容  \n比如同一段上下文被组装两次，或把不必要字段也传了。\n\n5. 流式/重试场景下的统计口径  \n有些 provider/CLI 会把重试或内部补全也计入输入统计。\n\n如果你愿意，我可以下一步直接帮你定位：从 `chat/cli-runner.ts` 和 `chat/server.ts` 开始，检查每次到底传了哪些消息、是否有重复拼接，并给你一个可落地的“降 input token”改动方案。",
+      "timestamp": 1772656608988
+    }
+  ],
+  "createdAt": 1772656577262,
+  "modelProvider": "codex"
+}

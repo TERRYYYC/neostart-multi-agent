@@ -1,0 +1,17 @@
+{
+  "id": "e3fc8080-f353-457f-acd4-92a18ea98433",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi",
+      "timestamp": 1772656307589
+    },
+    {
+      "role": "assistant",
+      "content": "Hi! How can I help you?",
+      "timestamp": 1772656313324
+    }
+  ],
+  "createdAt": 1772656307588,
+  "modelProvider": "claude"
+}

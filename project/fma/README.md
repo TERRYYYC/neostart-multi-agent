@@ -106,7 +106,7 @@ ctx.review = reviewResult.output             // Reviewer 追加 / Reviewer appen
 
 ## 当前版本 / Current Version
 
-### v1.1 — MVP + Chat Mode + 多模型 + Token 统计（2026-03-01 ~ 03-03）
+### v1.3 — MVP + Chat Mode + 多模型 + Token 统计 + CLI 健壮性（2026-03-01 ~ 03-05）
 
 **Agent Pipeline 能力 / Agent Pipeline Capabilities**
 
@@ -130,10 +130,16 @@ ctx.review = reviewResult.output             // Reviewer 追加 / Reviewer appen
 - ✅ **多模型实时切换**（Claude / Codex / Gemini，UI 下拉选择，每请求选模型）
 - ✅ **Token 用量 + 响应计时**（每条 assistant 消息显示 input/output/cached tokens + 耗时）
 
+**CLI 健壮性 / CLI Robustness**（2026-03-05 新增）
+
+- ✅ **心跳超时检测**（默认 120s 无输出则强制终止子进程，防挂住）
+- ✅ **优雅进程清理**（SIGTERM/SIGINT 信号处理，防孤儿进程）
+- ✅ **自动重试 + 线性退避**（可重试错误自动重试，最多 3 次）
+- ✅ **stderr 滑动窗口**（只保留最后 2000 字符，防内存泄漏）
+
 **当前限制 / Known Limitations**
 
 - ⏳ Agent Pipeline 顺序执行，无并行（受依赖链约束，当前合理）
-- ⏳ 无重试 + 超时保护
 - ⏳ 无反馈循环（Reviewer → Coder）
 - ⏳ 持久化为 JSON 文件，未来迁移到 Redis（Phase 5）
 - ⏳ 无异步任务队列
@@ -215,5 +221,5 @@ npm run chat
 
 ---
 
-*Built on lessons from: p003 · p004 · p006*
-*Created: 2026-03-01 | Updated: 2026-03-03 | Version: 1.1 | Language: TypeScript*
+*Built on lessons from: p003 · p004 · p006 · robust-invoke-hw2.js*
+*Created: 2026-03-01 | Updated: 2026-03-05 | Version: 1.3 | Language: TypeScript*

@@ -1,0 +1,27 @@
+{
+  "id": "d4ded6dc-1fe7-4cf9-ac98-624cd42c4b2a",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi",
+      "timestamp": 1772662631117
+    },
+    {
+      "role": "assistant",
+      "content": "Hello. I'm ready to assist with your agent-based project. How can I help you with the codebase or development today?",
+      "timestamp": 1772662645995
+    },
+    {
+      "role": "user",
+      "content": "不需要，我们先聊天",
+      "timestamp": 1772662670925
+    },
+    {
+      "role": "assistant",
+      "content": "好的。你想聊些什么？或者关于这个项目你有什么想法？",
+      "timestamp": 1772662687854
+    }
+  ],
+  "createdAt": 1772662631115,
+  "modelProvider": "gemini"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "de6a8b17-6d0b-446b-b9cf-54bf6b8af239",
+  "messages": [
+    {
+      "role": "user",
+      "content": "test",
+      "timestamp": 1772577524641
+    },
+    {
+      "role": "assistant",
+      "content": "Received. I’m connected and ready.",
+      "timestamp": 1772577530433
+    }
+  ],
+  "createdAt": 1772577524639,
+  "modelProvider": "codex"
+}

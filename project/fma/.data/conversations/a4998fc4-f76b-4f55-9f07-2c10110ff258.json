@@ -1,0 +1,17 @@
+{
+  "id": "a4998fc4-f76b-4f55-9f07-2c10110ff258",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi",
+      "timestamp": 1772576045319
+    },
+    {
+      "role": "user",
+      "content": "你使用的什么模型？",
+      "timestamp": 1772576153085
+    }
+  ],
+  "createdAt": 1772576045317,
+  "modelProvider": "codex"
+}

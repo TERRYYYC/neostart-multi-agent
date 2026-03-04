@@ -541,9 +541,20 @@
       inputEl.style.height = Math.min(inputEl.scrollHeight, 200) + 'px';
     });
 
+    // ── IME composition tracking / 输入法组合状态跟踪 ────
+    let isComposing = false;
+    inputEl.addEventListener('compositionstart', () => {
+      isComposing = true;
+    });
+    inputEl.addEventListener('compositionend', () => {
+      isComposing = false;
+    });
+
     // ── Enter to send (Shift+Enter for newline) ────
+    // 注意：IME 组合期间按 Enter 不应发送消息
+    // Note: Enter during IME composition should not send message
     inputEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
+      if (e.key === 'Enter' && !e.shiftKey && !isComposing && !e.isComposing) {
         e.preventDefault();
         sendMessage();
       }

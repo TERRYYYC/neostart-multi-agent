@@ -5,6 +5,188 @@
 
 ---
 
+## [Unreleased] — CLI 健壮性增强 / CLI Robustness Improvements (Heartbeat + Retry + Process Cleanup + stderr Guard)
+
+**日期 / Date**: 2026-03-05
+**目标 / Goal**: 参考 `robust-invoke-hw2.js` 的设计，为 CLI subprocess 调用层添加四项关键健壮性改进：心跳超时检测、优雅进程清理、自动重试、stderr 内存保护。
+
+### 问题背景 / Problem Context
+- CLI 子进程可能挂住（hang），无输出无退出，SSE 连接无限等待
+- 主进程退出时子进程变成孤儿进程（orphan），持续消耗 API 费用
+- CLI 偶发的瞬态失败（transient failure）直接暴露给用户，无重试机制
+- stderr 无限累积可能导致内存泄漏（verbose CLI 会大量输出到 stderr）
+
+### 变更清单 / Change List
+
+#### 1. `src/chat/cli-runner.ts` — 核心改动（745 行 → 1027 行）
+
+**新增 — 心跳超时机制 / Heartbeat Timeout**:
+- 每 10 秒检查 stdout/stderr 最后活动时间
+- 超过 `CLI_HEARTBEAT_TIMEOUT`（默认 120s）无输出 → SIGTERM → 5s → SIGKILL 终止子进程
+- 超时错误消息包含 stderr tail，便于诊断
+- stdout 和 stderr 的 `data` 事件都更新心跳（参考 robust-invoke-hw2.js 设计）
+
+**新增 — 优雅进程清理 / Graceful Process Cleanup**:
+- `activeChildren` Set 追踪所有活跃子进程
+- `SIGTERM`/`SIGINT` 信号处理器：主进程退出前清理所有子进程
+- `killChild()` 使用 `WeakSet` 保证幂等（同一进程不会重复创建 SIGKILL timer）
+- 给子进程 6 秒时间退出后强制 `process.exit(1)`
+
+**新增 — 重试机制 / Retry with Backoff**:
+- `runCliStreamWithRetry()` 包装函数，替代原 `runCliStream()` 在 server 中的调用
+- 仅在**尚未产出任何文本**时才安全重试（避免重复输出）
+- 线性退避：attempt × 2 秒
+- 智能判断可重试错误（排除 API key 无效、认证失败、rate limit 等）
+- 客户端实时收到 `[Retrying... attempt N/M]` 通知
+- 可通过 `CLI_MAX_RETRIES` 环境变量配置（默认 3 次）
+
+**修改 — stderr 滑动窗口 / stderr Sliding Window**:
+- `stderrOutput` 无限累积 → `stderrTail` 只保留最后 2000 字符
+- 防止 verbose CLI 输出导致内存无限增长
+
+**新增 — 导出函数**:
+- `runCliStreamWithRetry()` — 带重试的流式 CLI 调用（替代 `runCliStream` 在 server 中的使用）
+- `getActiveChildrenCount()` — 获取活跃子进程数量（监控/测试用）
+
+**回滚方式**: 用变更前的 cli-runner.ts 替换，server.ts 中 `runCliStreamWithRetry` 改回 `runCliStream`
+
+#### 2. `src/chat/server.ts` — 小改动（1 行）
+- **修改**: `import { runCliStream }` → `import { runCliStreamWithRetry }`
+- **修改**: `handleChat()` 中 `runCliStream()` → `runCliStreamWithRetry()`
+- **效果**: 所有 chat 请求自动获得重试能力
+- **回滚方式**: 改回 `runCliStream` 即可
+
+#### 3. 未修改的文件 / Unchanged Files
+- 其他所有文件 — 无需改动
+
+### 新增环境变量 / New Environment Variables
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `CLI_HEARTBEAT_TIMEOUT` | `120000` | 心跳超时（毫秒），最小 30000 |
+| `CLI_MAX_RETRIES` | `3` | CLI 调用最大重试次数 |
+
+### 技术决策 / Technical Decisions
+- **心跳同时检测 stdout+stderr**: 参考 robust-invoke-hw2.js，stderr 输出也算活跃（CLI 打印进度信息到 stderr）
+- **重试仅在无文本输出时**: 流式场景下，一旦有文本已发送给客户端，重试会导致重复输出，不安全
+- **killChild 幂等性**: 使用 WeakSet 跟踪已触发 kill 的子进程，防止同一进程被多次 kill 产生多个 SIGKILL timer
+- **信号处理器只注册一次**: `ensureSignalHandlers()` 使用 flag 防止重复注册
+- **不可重试错误白名单**: API key / authentication / forbidden / quota / rate limit 等错误直接抛出，不浪费重试次数
+
+### 参考来源 / References
+- `robust-invoke-hw2.js` — 心跳超时、进程清理、重试退避、stderr tail 截断的设计参考
+
+---
+
+## [Unreleased] — Bug 修复 — IME 输入法导致发送后输入框残留文字 / Bug Fix — IME Composition Causes Input Not Cleared After Send
+
+**日期 / Date**: 2026-03-04
+**目标 / Goal**: 修复使用中文输入法（或其他 CJK IME）时，发送消息后输入框残留已发送文字的 bug。
+
+### 问题背景 / Problem Context
+- 用户使用中文输入法时，即使输入英文字母也会经过 IME 组合（composition）过程
+- 按 Enter 键触发 `keydown` 事件 → `sendMessage()` 清空输入框 → 但紧接着 IME 的 `compositionend` 事件把文字重新写回输入框
+- 结果：输入框在发送后仍残留已发送的文字
+
+### 变更清单 / Change List
+
+#### 1. `src/public/index.html` — keydown 事件修复
+- **新增**: `compositionstart` / `compositionend` 事件监听，跟踪 IME 组合状态（`isComposing` 变量）
+- **修改**: `keydown` Enter 判断增加 `!isComposing && !e.isComposing` 双重检查
+  - `isComposing`：手动跟踪的变量，兼容旧浏览器
+  - `e.isComposing`：浏览器原生属性（KeyboardEvent.isComposing）
+- **效果**: IME 组合期间按 Enter 仅确认组合，不触发发送；组合结束后按 Enter 才发送消息
+- **回滚方式**: 移除 `compositionstart/end` 监听和 `isComposing` 变量，将 keydown 判断恢复为 `e.key === 'Enter' && !e.shiftKey`
+
+#### 2. `AGENTS.md` — 新增陷阱记录
+- **新增**: Pitfall #8 — IME composition & keydown 注意事项
+- **版本**: v1.1 → v1.2
+
+#### 3. 未修改的文件 / Unchanged Files
+- 其他所有文件 — 无需改动
+
+### 技术决策 / Technical Decisions
+- **双重检查策略**: 同时使用手动跟踪变量和原生 `e.isComposing` 属性，确保跨浏览器兼容性
+- **最小侵入**: 仅修改 keydown 事件处理逻辑，不影响其他功能
+
+---
+
+## [Unreleased] — 历史消息截断优化 / History Truncation for Token Optimization
+
+**日期 / Date**: 2026-03-04
+**目标 / Goal**: 解决 Codex/Gemini 等不支持 session resume 的 provider 在多轮对话中 token 线性膨胀的问题。通过双重截断策略（轮数限制 + 单条字符截断）控制历史拼接长度。
+
+### 问题背景 / Problem Context
+- Codex/Gemini 不支持 `--resume`，每次请求需将完整历史拼入 prompt
+- 一个简单的 "hi" 在 Codex 上消耗 10,306 input tokens（其中 ~9,700 为 CLI 内部 system prompt，不可控）
+- 随着对话增长，历史拼接导致 token 线性膨胀，成本不可控
+
+### 变更清单 / Change List
+
+#### 1. `src/chat/cli-runner.ts` — `buildPromptWithHistory()` 增强
+- **修改**: 新增双重截断策略
+  - 轮数限制：默认保留最近 10 条消息（环境变量 `MAX_HISTORY_MESSAGES`）
+  - 单条截断：每条历史消息超过 2000 字符时截断（环境变量 `MAX_MESSAGE_CHARS`）
+- **新增**: 截断提示标记（`[truncated / 已截断]`、`N earlier messages omitted`）
+- **新增**: 环境变量安全解析（非法值 fallback 到默认值，含最小值保护）
+- **不变**: 函数签名和 export 不变，Claude provider（使用 `--resume`）不受影响
+- **回滚方式**: 将 `buildPromptWithHistory()` 恢复为原始的直接拼接版本
+
+#### 2. 未修改的文件 / Unchanged Files
+- 其他所有文件 — 无需改动
+
+### 环境变量配置 / Environment Variables
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `MAX_HISTORY_MESSAGES` | `10` | 历史消息最大条数（最小 2）|
+| `MAX_MESSAGE_CHARS` | `2000` | 单条消息最大字符数（最小 100）|
+
+---
+
+## [Unreleased] — Chat 结构化日志 / Chat Structured Logging
+
+**日期 / Date**: 2026-03-04
+**目标 / Goal**: 为 Chat 模块添加可检索、可关联、可控级别的结构化日志，解决“问题发生但无法定位”的排障痛点。
+
+### 变更清单 / Change List
+
+#### 1. `src/chat/logger.ts` — 新增
+- **新增**: 零依赖 JSON line 日志工具（`debug/info/warn/error`）
+- **新增**: `LOG_LEVEL` 环境变量控制日志级别（默认 `info`）
+- **新增**: 上下文字段支持（`requestId` / `conversationId` / `provider`）
+- **新增**: 错误标准化与长文本截断工具（避免日志过长）
+- **回滚方式**: 删除该文件，并将其他文件中的 logger 调用恢复为 `console.*`
+
+#### 2. `src/chat/server.ts` — 接入请求级日志
+- **修改**: `POST /api/chat` 每次请求生成 `requestId`，贯穿到 CLI runner
+- **新增**: 关键事件日志：请求开始/结束、usage、流错误、路由 404、删除会话命中/未命中
+- **修改**: 服务器异常返回增加 `errorId`（便于反查日志）
+- **修改**: 启动日志改为结构化 `server.started`
+- **回滚方式**: 用变更前的 `server.ts` 替换
+
+#### 3. `src/chat/cli-runner.ts` — 接入子进程与解析日志
+- **修改**: `runCliStream()` 增加可选 `logContext` 参数（`requestId`/`conversationId`）
+- **新增**: 子进程事件日志：spawn、stdout/stderr chunk（debug 级）、exit、non-zero exit
+- **新增**: parser 非 JSON 行日志（debug 级，带 provider + 截断 line）
+- **新增**: Gemini telemetry stderr 噪音识别，避免误报
+- **回滚方式**: 用变更前的 `cli-runner.ts` 替换
+
+#### 4. `src/chat/conversation.ts` — 接入持久化日志
+- **修改**: 磁盘读写、损坏文件跳过、会话 CRUD 全部改为结构化日志
+- **回滚方式**: 用变更前的 `conversation.ts` 替换
+
+#### 5. 未修改的文件 / Unchanged Files
+- `src/chat/types.ts` — 无需改动
+- `src/chat/index.ts` — 无需改动
+- `src/public/index.html` — 无需改动
+- `src/core/*` — 无需改动
+
+### 技术决策 / Technical Decisions
+- **最小依赖策略**: 不引入 pino/winston，先用内建 logger 达成 80% 排障收益
+- **默认输出策略**: 默认 `info`，避免开发时刷屏；需要深挖时用 `LOG_LEVEL=debug`
+- **关联性优先**: 通过 `requestId + conversationId + provider` 串起一次完整链路
+
+---
+
 ## [Unreleased] — Token 用量 + 响应计时显示 / Token Usage + Response Timing Display
 
 **日期 / Date**: 2026-03-03
