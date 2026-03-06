@@ -53,10 +53,10 @@ fma/
 │   │   ├── cli-runner.ts   ★ CLI subprocess abstraction (claude/codex/gemini)
 │   │   │                     Multi-model: build commands + parse output per provider
 │   │   │                     多模型：每个 provider 独立的命令构建和输出解析
-│   │   ├── server.ts         HTTP server + SSE streaming + REST API + timing
+│   │   ├── server.ts         HTTP server + Chat SSE + Pipeline SSE + REST API
 │   │   └── index.ts          Chat Mode entry point
 │   ├── public/
-│   │   └── index.html        Web UI (sidebar + chat + model selector + usage stats)
+│   │   └── index.html        Web UI (Chat Mode + Pipeline Mode + sidebar)
 │   └── index.ts              Orchestrator + CLI entry (Agent Pipeline mode)
 ├── .data/                    Runtime data (auto-generated, gitignored)
 │   └── conversations/       JSON files, one per conversation
@@ -103,14 +103,24 @@ fma/
 - ✅ Token usage + timing display — each assistant message shows input/output tokens, cached tokens, response duration
 - ✅ CLI robustness — heartbeat timeout (120s), graceful process cleanup (SIGTERM→SIGKILL), auto-retry with backoff (max 3), stderr sliding window (2000 chars)
 - ✅ CLI 健壮性 — 心跳超时（120s）、优雅进程清理、自动重试退避（最多 3 次）、stderr 滑动窗口（2000 字符）
+- ✅ **Phase 2**: Agent Pipeline multi-model CLI Runner — replaced Anthropic SDK with CLI subprocess in `core/agent.ts`
+- ✅ **Phase 2**: Cost-tier model assignment — Planner=opus, Coder=sonnet, Reviewer=haiku (env var overridable)
+- ✅ **Phase 2**: Agent Pipeline 多模型 CLI Runner — `core/agent.ts` 从 SDK 替换为 CLI subprocess，成本分层
+- ✅ **Phase 2.5**: Web UI Pipeline mode — `POST /api/pipeline` SSE route, mode switcher, progress bars, output tabs
+- ✅ **Phase 2.5**: Web UI Pipeline 模式 — 浏览器触发流水线、实时进度条、Agent 输出 Tab、Agent 模型配置
 
 **⚠️ Known Issues / 已知问题**:
 - Multi-model support still has bugs that need further investigation and fixing. Codex and Gemini parsers have been corrected for known issues (see Pitfalls #5–#7), but edge cases likely remain. Next session should do thorough end-to-end testing with all three providers.
 - 多模型支持仍有 bug 待完善。Codex 和 Gemini 解析器已修复已知问题（见陷阱 #5–#7），但可能还存在边缘情况。下次开发应对三个 provider 进行全面端到端测试。
+- `core/agent.ts` now depends on `chat/cli-runner.ts` (core → chat direction). This is acceptable short-term debt; Phase 3 should extract shared subprocess layer.
+- `core/agent.ts` 现在依赖 `chat/cli-runner.ts`（core → chat 方向）。这是可接受的短期技术债，Phase 3 应提取共享 subprocess 层。
+
+**⚠️ Known Tech Debt / 已知技术债**:
+- TD-10: Pipeline mode system prompts are duplicated in `server.ts` (inlined) and `agents/*.ts`. If prompts change frequently, Phase 4 should extract them into a shared config.
+- TD-10: Pipeline 模式的 system prompt 在 `server.ts`（内联）和 `agents/*.ts` 中重复。如果 prompt 频繁变更，Phase 4 应提取为共享配置。
 
 **Next up / 下一步** (see `future-structure.md` for details):
-- **Priority**: Fix remaining multi-model bugs (end-to-end test all 3 providers, verify token usage accuracy)
-- Phase 2 remaining: Cost comparison logging across providers
+- **Priority**: End-to-end test Agent Pipeline with all 3 providers (both CLI and Web UI)
 - Phase 3: Filesystem queue, async agents, checkpoint/resume
 - Phase 4: Graph orchestration + feedback loops + Tester Agent
 
@@ -130,7 +140,7 @@ fma/
 
 ## Key Design Decisions / 关键设计决策
 
-- **Why SDK not CLI for Agent Pipeline?** MVP simplicity. `core/agent.ts` is pluggable — Phase 2 swaps to CLI with zero upstream changes. (ADR-001)
+- **Why CLI not SDK for Agent Pipeline?** Phase 2 completed: `core/agent.ts` now uses CLI subprocess via `chat/cli-runner.ts`. Supports Claude/Codex/Gemini with per-agent model selection. (ADR-001, Phase 2)
 - **Why sequential not parallel pipeline?** Data dependency chain: Coder needs plan, Reviewer needs code. Parallel adds complexity with no benefit at this stage. (ADR-002)
 - **Why JSON files not SQLite/Redis?** Zero dependencies. `conversation.ts` internals swap to Redis in Phase 5, all exports stay the same. (ADR in CHANGELOG)
 - **Why Node.js built-in `http` not Express?** One runtime dependency policy. Phase 5+ may migrate to a framework. (TD-08)
@@ -165,7 +175,9 @@ fma/
 
 ---
 
-*Version: v1.3 | Updated: 2026-03-05 | Created: 2026-03-03*
+*Version: v1.5 | Updated: 2026-03-05 | Created: 2026-03-03*
+*v1.5: Phase 2.5 complete — Web UI Pipeline mode (POST /api/pipeline SSE, mode switcher, progress bars, output tabs)*
+*v1.4: Phase 2 complete — Agent Pipeline multi-model CLI Runner, cost-tier model assignment*
 *v1.3: Added CLI robustness (heartbeat, retry, process cleanup), Pitfalls #9–#10*
 *v1.2: Added IME composition pitfall (Pitfall #8)*
 *v1.1: Added multi-model support, token usage display, Codex/Gemini pitfalls*

@@ -5,6 +5,135 @@
 
 ---
 
+## [Unreleased] — Phase 2.5: Web UI Pipeline 模式 / Web UI Pipeline Mode
+
+**日期 / Date**: 2026-03-05
+**目标 / Goal**: 在 Web UI 中新增 Pipeline 模式，让用户可以通过浏览器触发 Planner → Coder → Reviewer 流水线，实时查看每个 Agent 的 SSE 流式进度和输出。
+
+### 变更清单 / Change List
+
+#### 1. `src/chat/server.ts` — 新增 Pipeline SSE 路由
+- **新增**: `POST /api/pipeline` 路由 — 接收任务描述 + Agent 模型配置
+- **新增**: `handlePipeline()` — 顺序执行 3 个 Agent，实时推送 SSE 事件
+- **新增**: `runPipelineAgentStream()` — 单个 Agent 的流式 SSE 执行器
+- **新增**: `buildPromptWithSystem()` — system prompt XML 前置拼接（与 core/agent.ts 一致）
+- **新增**: `PipelineAgent` 接口 + `PIPELINE_AGENTS` 配置数组
+- SSE 事件类型: `pipeline-init`, `agent-start`, `agent-text`, `agent-done`, `agent-error`, `agent-usage`, `pipeline-done`, `pipeline-error`
+- 每个 Agent 的 provider/model 支持请求体覆盖 → 环境变量 → 默认值
+- system prompt 内联在 server.ts（避免 server → agents/ 依赖，保持解耦）
+- **回滚方式**: 删除 `handlePipeline` 函数和 `/api/pipeline` 路由注册
+
+#### 2. `src/public/index.html` — Pipeline 模式 UI
+- **新增**: Mode Switcher（Chat / Pipeline 切换按钮）
+- **新增**: Pipeline 任务输入区（textarea + Agent 模型配置下拉框）
+- **新增**: Pipeline 进度条（3 个 Agent 的实时状态：Waiting → Running → Done/Error）
+- **新增**: Pipeline 输出 Tabs（Plan / Code / Review，实时流式显示各 Agent 输出）
+- **新增**: 打字光标动画（与 Chat 模式一致）
+- **新增**: Ctrl+Enter 快捷键启动 Pipeline
+- **修改**: 标题从 "FMA Chat" 改为 "FMA"，版本号更新为 v1.5
+- **不变**: Chat Mode 所有功能完全保留
+- **回滚方式**: 恢复 git 版本的 index.html
+
+### 技术决策 / Technical Decisions
+- **System prompt 内联 vs 导入 agents/*.ts**: 选择内联。虽然造成了 system prompt 的文本重复，但避免了 server.ts → agents/ 的依赖方向。server.ts 应只依赖 chat/ 模块和 core/types.ts。如果 system prompt 频繁变更，Phase 4 可以提取为 shared config。
+- **Pipeline 不复用 core/agent.ts**: Pipeline SSE 需要实时流式输出，而 `runAgent()` 是 Promise 包装。直接使用 `runCliStreamWithRetry` + `emitter.on('data')` → `res.write(SSE)` 实现零缓冲流式传输。
+- **Pipeline 不创建 Conversation**: Pipeline 模式是一次性任务，不需要持久化对话历史。避免对 conversation.ts 造成不必要的依赖。
+
+### 受影响的文件 / Affected Files
+| 文件 | 改动 |
+|------|------|
+| `src/chat/server.ts` | 新增 ~250 行（Pipeline handler + Agent 定义） |
+| `src/public/index.html` | 重写（新增 Pipeline UI，Chat Mode 不变） |
+| `src/core/*` | 不变 |
+| `src/agents/*` | 不变 |
+| `src/chat/cli-runner.ts` | 不变 |
+
+---
+
+## [Unreleased] — Phase 2: Agent Pipeline 多模型 CLI Runner / Multi-Model CLI Runner for Agent Pipeline
+
+**日期 / Date**: 2026-03-05
+**目标 / Goal**: 将 Agent Pipeline 模式（`core/agent.ts`）从 Anthropic SDK 直接调用替换为 CLI subprocess 调用，支持 Claude / Codex / Gemini 三种 provider，实现成本分层（Planner=opus, Coder=sonnet, Reviewer=haiku）。参考 p006 ADR-001。
+
+### 问题背景 / Problem Context
+- Agent Pipeline 仍锁定 Anthropic SDK，无法使用 Codex/Gemini
+- Chat Mode 已实现多模型 CLI Runner（`cli-runner.ts`），但 Pipeline 未复用
+- 无法按 Agent 角色分配不同成本等级的模型
+
+### 变更清单 / Change List
+
+#### 1. `src/core/types.ts` — 类型扩展
+- **新增**: `AgentRunOptions` 接口 — `{ provider?: ModelProvider; model?: string }`
+- **新增**: 从 `chat/types.ts` 重新导出 `ModelProvider` 类型
+- **不变**: `AgentResult` 和 `TaskContext` 签名不变
+- **回滚方式**: 移除新增的 `AgentRunOptions` 和 `ModelProvider` 导出
+
+#### 2. `src/core/agent.ts` — **核心重写**（56 行 → ~230 行）
+- **删除**: `import Anthropic` — 不再使用 Anthropic SDK
+- **删除**: `new Anthropic()` 单例客户端
+- **删除**: `client.messages.create()` 调用
+- **新增**: `import { runCliStreamWithRetry }` — 复用 chat 模块的 CLI 基础设施
+- **新增**: `collectStreamOutput()` — EventEmitter → Promise<string> 包装器
+- **新增**: `buildPromptWithSystem()` — 用 XML 标签拼接 system prompt 和 user message
+- **新增**: `buildModelEnvOverrides()` — 动态设置 CLAUDE_MODEL/CODEX_MODEL/GEMINI_MODEL 环境变量
+- **修改**: `runAgent()` 第 4 参数从 `model?: string` 改为 `options?: AgentRunOptions`
+- **新增**: Token 用量日志（agent.usage 事件）
+- **新增**: Agent 级结构化日志（agent.start / agent.done / agent.error）
+- **继承**: 心跳超时、自动重试、进程清理、stderr 窗口等所有 cli-runner.ts 能力
+- **回滚方式**: 恢复旧的 SDK 版 agent.ts，将 types.ts 新增内容移除
+
+#### 3. `src/index.ts` — 编排器更新
+- **删除**: `ANTHROPIC_API_KEY` 硬检查（CLI subprocess 自行处理认证）
+- **新增**: 启动日志显示 "CLI subprocess (multi-model)" 模式标识
+- **回滚方式**: 恢复 API key 检查代码
+
+#### 4. `src/agents/planner.ts` — 成本分层配置
+- **新增**: `PLANNER_OPTIONS: AgentRunOptions` — 默认 `{ provider: 'claude', model: 'opus' }`
+- **新增**: 环境变量覆盖支持（`PLANNER_PROVIDER` / `PLANNER_MODEL`）
+- **修改**: `runAgent()` 调用增加第 4 参数 `PLANNER_OPTIONS`
+- **回滚方式**: 移除 `PLANNER_OPTIONS`，删除 `runAgent()` 第 4 参数
+
+#### 5. `src/agents/coder.ts` — 成本分层配置
+- **新增**: `CODER_OPTIONS: AgentRunOptions` — 默认 `{ provider: 'claude', model: 'sonnet' }`
+- **新增**: 环境变量覆盖支持（`CODER_PROVIDER` / `CODER_MODEL`）
+- **修改**: `runAgent()` 调用增加第 4 参数 `CODER_OPTIONS`
+- **回滚方式**: 移除 `CODER_OPTIONS`，删除 `runAgent()` 第 4 参数
+
+#### 6. `src/agents/reviewer.ts` — 成本分层配置
+- **新增**: `REVIEWER_OPTIONS: AgentRunOptions` — 默认 `{ provider: 'claude', model: 'haiku' }`
+- **新增**: 环境变量覆盖支持（`REVIEWER_PROVIDER` / `REVIEWER_MODEL`）
+- **修改**: `runAgent()` 调用增加第 4 参数 `REVIEWER_OPTIONS`
+- **回滚方式**: 移除 `REVIEWER_OPTIONS`，删除 `runAgent()` 第 4 参数
+
+#### 7. 未修改的文件 / Unchanged Files
+- `src/chat/cli-runner.ts` — 无需改动（被复用，但代码不变）
+- `src/chat/server.ts` — 无需改动
+- `src/chat/types.ts` — 无需改动
+- `src/public/index.html` — 无需改动
+
+### 新增环境变量 / New Environment Variables
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `PLANNER_PROVIDER` | `claude` | Planner Agent 的模型提供商 |
+| `PLANNER_MODEL` | `opus` | Planner Agent 的模型名称 |
+| `CODER_PROVIDER` | `claude` | Coder Agent 的模型提供商 |
+| `CODER_MODEL` | `sonnet` | Coder Agent 的模型名称 |
+| `REVIEWER_PROVIDER` | `claude` | Reviewer Agent 的模型提供商 |
+| `REVIEWER_MODEL` | `haiku` | Reviewer Agent 的模型名称 |
+
+### 技术决策 / Technical Decisions
+- **复用 cli-runner.ts**: 避免重复造轮子，心跳/重试/清理逻辑已经过实战检验
+- **环境变量覆盖模型**: cli-runner.ts 通过 CLAUDE_MODEL 等环境变量选择模型，agent.ts 通过临时覆盖 + 恢复实现按 Agent 指定模型
+- **System prompt 拼接 vs 原生 flag**: 选择统一用 XML 标签拼接（`<system>...</system>`），避免修改 cli-runner.ts 的命令构建逻辑
+- **core → chat 依赖方向**: 短期可接受的技术债，Phase 3 可提取 shared 层
+
+### 参考来源 / References
+- p006 ADR-001（CLI > SDK 决策）
+- p006 lesson-02（生产级 CLI 工程）
+- `src/chat/cli-runner.ts`（subprocess 基础设施参考）
+
+---
+
 ## [Unreleased] — CLI 健壮性增强 / CLI Robustness Improvements (Heartbeat + Retry + Process Cleanup + stderr Guard)
 
 **日期 / Date**: 2026-03-05

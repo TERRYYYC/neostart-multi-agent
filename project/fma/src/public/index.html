@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FMA Chat — AI 聊天</title>
+  <title>FMA — AI 代码助手</title>
   <style>
     /* ── Reset & Variables ─────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,6 +19,8 @@
       --user-bg: #1f6feb33;
       --assistant-bg: #161b22;
       --error: #f85149;
+      --success: #3fb950;
+      --warning: #d29922;
       --radius: 12px;
       --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
       --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
@@ -196,6 +198,39 @@
       gap: 12px;
     }
 
+    /* ── Mode Switcher / 模式切换器 ──────────────── */
+    .mode-switcher {
+      display: flex;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .mode-btn {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .mode-btn:not(.active):hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
     /* ── Model Selector / 模型选择器 ──────────────── */
     .model-selector {
       font-size: 12px;
@@ -256,7 +291,14 @@
       gap: 3px;
     }
 
-    /* ── Messages Area ─────────────────────────────── */
+    /* ── Messages Area (Chat Mode) ───────────────── */
+    #chat-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
     #messages {
       flex: 1;
       overflow-y: auto;
@@ -331,7 +373,7 @@
 
     .welcome p { font-size: 14px; }
 
-    /* ── Input Area ────────────────────────────────── */
+    /* ── Input Area (Chat Mode) ──────────────────── */
     #input-area {
       padding: 16px 20px;
       border-top: 1px solid var(--border);
@@ -380,6 +422,265 @@
 
     #send-btn:hover { background: var(--accent-hover); }
     #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Pipeline Mode View / Pipeline 模式视图 ──── */
+    #pipeline-view {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    #pipeline-view.active {
+      display: flex;
+    }
+
+    #chat-view.active {
+      display: flex;
+    }
+
+    .pipeline-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ── Pipeline Input / Pipeline 输入区 ─────────── */
+    .pipeline-input-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .pipeline-input-section h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    #pipeline-task-input {
+      width: 100%;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      padding: 12px 16px;
+      line-height: 1.5;
+      min-height: 80px;
+      max-height: 300px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    #pipeline-task-input:focus { border-color: var(--accent); }
+    #pipeline-task-input::placeholder { color: var(--text-dim); }
+
+    /* ── Pipeline Agent Config / Agent 配置行 ─────── */
+    .pipeline-agent-config {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .agent-config-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .agent-config-item label {
+      font-weight: 600;
+      min-width: 70px;
+    }
+
+    .agent-config-item select {
+      font-size: 12px;
+      padding: 3px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+    }
+
+    .pipeline-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 14px;
+      gap: 10px;
+    }
+
+    #pipeline-start-btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    #pipeline-start-btn:hover { background: var(--accent-hover); }
+    #pipeline-start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Pipeline Progress / 流水线进度 ──────────── */
+    .pipeline-progress {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: none;
+    }
+
+    .pipeline-progress.visible { display: block; }
+
+    .pipeline-progress h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .agent-progress-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .agent-progress-row:last-child { margin-bottom: 0; }
+
+    .agent-label {
+      min-width: 100px;
+      font-weight: 500;
+    }
+
+    .progress-bar-bg {
+      flex: 1;
+      height: 8px;
+      background: var(--bg);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .progress-bar-fill.waiting { background: var(--border); width: 0%; }
+    .progress-bar-fill.running { background: var(--accent); animation: progress-pulse 1.5s infinite; }
+    .progress-bar-fill.done { background: var(--success); width: 100%; }
+    .progress-bar-fill.error { background: var(--error); width: 100%; }
+
+    @keyframes progress-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .agent-status-text {
+      font-size: 12px;
+      color: var(--text-dim);
+      min-width: 90px;
+      text-align: right;
+    }
+
+    .agent-status-text.running { color: var(--accent); }
+    .agent-status-text.done { color: var(--success); }
+    .agent-status-text.error { color: var(--error); }
+
+    .pipeline-total-time {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--text-dim);
+      text-align: right;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Pipeline Output Tabs / Pipeline 输出 Tab ── */
+    .pipeline-output {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: none;
+      flex-direction: column;
+      min-height: 200px;
+    }
+
+    .pipeline-output.visible {
+      display: flex;
+    }
+
+    .output-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      padding: 0 8px;
+    }
+
+    .output-tab {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .output-tab:hover { color: var(--text); }
+    .output-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .output-tab-content {
+      display: none;
+      padding: 16px 20px;
+      overflow-y: auto;
+      max-height: 500px;
+      font-size: 13.5px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: var(--mono);
+      color: var(--text);
+    }
+
+    .output-tab-content.active { display: block; }
+
+    .output-tab-content .typing-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 14px;
+      background: var(--accent);
+      vertical-align: text-bottom;
+      animation: blink 0.8s infinite;
+    }
 
     /* ── Footer ────────────────────────────────────── */
     .footer-info {
@@ -431,6 +732,11 @@
         z-index: 99;
       }
       .sidebar-overlay.visible { display: block; }
+
+      .pipeline-agent-config {
+        flex-direction: column;
+        align-items: stretch;
+      }
     }
   </style>
 </head>
@@ -459,10 +765,15 @@
         <button class="toggle-sidebar-btn" onclick="toggleSidebar()" title="Toggle sidebar / 切换侧边栏">&#9776;</button>
         <h1>
           <span>&#x1f916;</span>
-          <span>FMA Chat</span>
+          <span>FMA</span>
         </h1>
+        <!-- Mode Switcher / 模式切换 -->
+        <div class="mode-switcher">
+          <button class="mode-btn active" id="mode-chat-btn" onclick="switchMode('chat')">Chat</button>
+          <button class="mode-btn" id="mode-pipeline-btn" onclick="switchMode('pipeline')">Pipeline</button>
+        </div>
       </div>
-      <div class="header-right">
+      <div class="header-right" id="chat-header-right">
         <span class="provider-dot claude" id="provider-dot"></span>
         <select class="model-selector" id="model-selector" onchange="onProviderChange()" title="Select AI model / 选择 AI 模型">
           <option value="claude">Claude</option>
@@ -472,28 +783,134 @@
       </div>
     </header>
 
-    <div id="messages">
-      <div class="welcome">
-        <h2>FMA Chat</h2>
-        <p>Type a message to start chatting with AI</p>
-        <p>输入消息开始与 AI 对话</p>
+    <!-- ═══ Chat Mode View ═══ -->
+    <div id="chat-view" class="active">
+      <div id="messages">
+        <div class="welcome">
+          <h2>FMA Chat</h2>
+          <p>Type a message to start chatting with AI</p>
+          <p>输入消息开始与 AI 对话</p>
+        </div>
+      </div>
+
+      <div id="input-area">
+        <div class="input-wrapper">
+          <textarea
+            id="message-input"
+            rows="1"
+            placeholder="Type your message... / 输入消息..."
+            autofocus
+          ></textarea>
+          <button id="send-btn" onclick="sendMessage()">Send / 发送</button>
+        </div>
       </div>
     </div>
 
-    <div id="input-area">
-      <div class="input-wrapper">
-        <textarea
-          id="message-input"
-          rows="1"
-          placeholder="Type your message... / 输入消息..."
-          autofocus
-        ></textarea>
-        <button id="send-btn" onclick="sendMessage()">Send / 发送</button>
+    <!-- ═══ Pipeline Mode View ═══ -->
+    <div id="pipeline-view">
+      <div class="pipeline-container">
+
+        <!-- Pipeline Task Input / 任务输入 -->
+        <div class="pipeline-input-section">
+          <h3>Coding Task / 编程任务</h3>
+          <textarea
+            id="pipeline-task-input"
+            rows="3"
+            placeholder="Describe your coding task... / 描述你的编程任务...&#10;Example: write a function that validates email addresses"
+          ></textarea>
+
+          <!-- Agent Model Config / Agent 模型配置 -->
+          <div class="pipeline-agent-config">
+            <div class="agent-config-item">
+              <label>Planner:</label>
+              <select id="planner-provider">
+                <option value="claude">Claude</option>
+                <option value="codex">Codex</option>
+                <option value="gemini">Gemini</option>
+              </select>
+              <select id="planner-model">
+                <option value="opus">opus</option>
+                <option value="sonnet">sonnet</option>
+                <option value="haiku">haiku</option>
+              </select>
+            </div>
+            <div class="agent-config-item">
+              <label>Coder:</label>
+              <select id="coder-provider">
+                <option value="claude">Claude</option>
+                <option value="codex">Codex</option>
+                <option value="gemini">Gemini</option>
+              </select>
+              <select id="coder-model">
+                <option value="sonnet" selected>sonnet</option>
+                <option value="opus">opus</option>
+                <option value="haiku">haiku</option>
+              </select>
+            </div>
+            <div class="agent-config-item">
+              <label>Reviewer:</label>
+              <select id="reviewer-provider">
+                <option value="claude">Claude</option>
+                <option value="codex">Codex</option>
+                <option value="gemini">Gemini</option>
+              </select>
+              <select id="reviewer-model">
+                <option value="haiku" selected>haiku</option>
+                <option value="sonnet">sonnet</option>
+                <option value="opus">opus</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="pipeline-actions">
+            <button id="pipeline-start-btn" onclick="startPipeline()">Start Pipeline / 启动流水线</button>
+          </div>
+        </div>
+
+        <!-- Pipeline Progress / 流水线进度 -->
+        <div class="pipeline-progress" id="pipeline-progress">
+          <h3>Pipeline Progress / 流水线进度</h3>
+          <div class="agent-progress-row" id="progress-planner">
+            <span class="agent-label">🧠 Planner</span>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill waiting" id="bar-planner"></div>
+            </div>
+            <span class="agent-status-text" id="status-planner">Waiting / 等待中</span>
+          </div>
+          <div class="agent-progress-row" id="progress-coder">
+            <span class="agent-label">💻 Coder</span>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill waiting" id="bar-coder"></div>
+            </div>
+            <span class="agent-status-text" id="status-coder">Waiting / 等待中</span>
+          </div>
+          <div class="agent-progress-row" id="progress-reviewer">
+            <span class="agent-label">🔍 Reviewer</span>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill waiting" id="bar-reviewer"></div>
+            </div>
+            <span class="agent-status-text" id="status-reviewer">Waiting / 等待中</span>
+          </div>
+          <div class="pipeline-total-time" id="pipeline-total-time" style="display:none;"></div>
+        </div>
+
+        <!-- Pipeline Output Tabs / 输出 Tabs -->
+        <div class="pipeline-output" id="pipeline-output">
+          <div class="output-tabs">
+            <button class="output-tab active" onclick="switchOutputTab('plan')" id="tab-plan">Plan / 计划</button>
+            <button class="output-tab" onclick="switchOutputTab('code')" id="tab-code">Code / 代码</button>
+            <button class="output-tab" onclick="switchOutputTab('review')" id="tab-review">Review / 审查</button>
+          </div>
+          <div class="output-tab-content active" id="output-plan"></div>
+          <div class="output-tab-content" id="output-code"></div>
+          <div class="output-tab-content" id="output-review"></div>
+        </div>
+
       </div>
     </div>
 
     <div class="footer-info">
-      FMA v0.1.0 — CLI subprocess + SSE streaming
+      FMA v1.5 — Chat Mode + Pipeline Mode (CLI subprocess + SSE streaming)
     </div>
   </div>
 
@@ -503,6 +920,8 @@
     let isStreaming = false;
     let currentAbortController = null;
     let selectedProvider = 'claude';  // 当前选中的模型 / currently selected model
+    let currentMode = 'chat';        // 当前模式 / current mode: 'chat' | 'pipeline'
+    let isPipelineRunning = false;
 
     const messagesEl = document.getElementById('messages');
     const inputEl = document.getElementById('message-input');
@@ -513,24 +932,51 @@
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     const sessionListEl = document.getElementById('session-list');
 
+    // Pipeline elements
+    const pipelineTaskInput = document.getElementById('pipeline-task-input');
+    const pipelineStartBtn = document.getElementById('pipeline-start-btn');
+    const pipelineProgress = document.getElementById('pipeline-progress');
+    const pipelineOutput = document.getElementById('pipeline-output');
+    const pipelineTotalTime = document.getElementById('pipeline-total-time');
+
     // ── Init / 初始化 ──────────────────────────────
     loadSessionList();
+
+    // ── Mode Switching / 模式切换 ───────────────────
+    function switchMode(mode) {
+      currentMode = mode;
+      const chatView = document.getElementById('chat-view');
+      const pipelineView = document.getElementById('pipeline-view');
+      const chatHeaderRight = document.getElementById('chat-header-right');
+      const modeChatBtn = document.getElementById('mode-chat-btn');
+      const modePipelineBtn = document.getElementById('mode-pipeline-btn');
+
+      if (mode === 'chat') {
+        chatView.classList.add('active');
+        pipelineView.classList.remove('active');
+        chatHeaderRight.style.display = 'flex';
+        modeChatBtn.classList.add('active');
+        modePipelineBtn.classList.remove('active');
+        inputEl.focus();
+      } else {
+        chatView.classList.remove('active');
+        pipelineView.classList.add('active');
+        chatHeaderRight.style.display = 'none';
+        modePipelineBtn.classList.add('active');
+        modeChatBtn.classList.remove('active');
+        pipelineTaskInput.focus();
+      }
+    }
 
     // ── Provider change handler / 模型切换处理 ──────
     function onProviderChange() {
       selectedProvider = modelSelector.value;
       updateProviderDot(selectedProvider);
-      // 切换模型时开启新对话（不同模型的上下文不互通）
-      // Switch model starts new conversation (contexts don't mix between models)
       if (conversationId) {
         newChat();
       }
     }
 
-    /**
-     * 更新 provider 颜色指示器
-     * Update provider color indicator dot
-     */
     function updateProviderDot(provider) {
       providerDot.className = 'provider-dot ' + provider;
     }
@@ -543,20 +989,22 @@
 
     // ── IME composition tracking / 输入法组合状态跟踪 ────
     let isComposing = false;
-    inputEl.addEventListener('compositionstart', () => {
-      isComposing = true;
-    });
-    inputEl.addEventListener('compositionend', () => {
-      isComposing = false;
-    });
+    inputEl.addEventListener('compositionstart', () => { isComposing = true; });
+    inputEl.addEventListener('compositionend', () => { isComposing = false; });
 
     // ── Enter to send (Shift+Enter for newline) ────
-    // 注意：IME 组合期间按 Enter 不应发送消息
-    // Note: Enter during IME composition should not send message
     inputEl.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey && !isComposing && !e.isComposing) {
         e.preventDefault();
         sendMessage();
+      }
+    });
+
+    // Pipeline: Ctrl+Enter to start / Ctrl+Enter 启动流水线
+    pipelineTaskInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !isPipelineRunning) {
+        e.preventDefault();
+        startPipeline();
       }
     });
 
@@ -604,27 +1052,23 @@
 
     // ── Load a session / 加载指定 Session ──────────
     async function loadSession(id) {
-      // 如果正在流式传输，中止旧请求 / Abort if currently streaming
       if (isStreaming && currentAbortController) {
         currentAbortController.abort();
         isStreaming = false;
         sendBtn.disabled = false;
       }
 
+      // 自动切到 Chat 模式 / Auto-switch to chat mode
+      if (currentMode !== 'chat') switchMode('chat');
+
       try {
         const res = await fetch('/api/conversations/' + id);
-        if (!res.ok) {
-          console.error('[loadSession] Failed:', res.status);
-          return;
-        }
+        if (!res.ok) return;
 
         const conv = await res.json();
         conversationId = conv.id;
-
-        // 清空消息区域 / Clear messages area
         messagesEl.innerHTML = '';
 
-        // 渲染历史消息 / Render historical messages
         if (conv.messages.length === 0) {
           messagesEl.innerHTML = '<div class="welcome"><h2>FMA Chat</h2>'
             + '<p>Type a message to start chatting with AI</p>'
@@ -635,18 +1079,14 @@
           }
         }
 
-        // 同步模型选择器为该 session 的 provider
-        // Sync model selector to session's provider
         if (conv.modelProvider) {
           selectedProvider = conv.modelProvider;
           modelSelector.value = conv.modelProvider;
           updateProviderDot(conv.modelProvider);
         }
 
-        // 更新侧边栏高亮 / Update sidebar highlight
         updateSidebarHighlight();
 
-        // 移动端自动收起侧边栏 / Auto-close sidebar on mobile
         if (window.innerWidth <= 768) {
           sidebar.classList.add('collapsed');
           sidebarOverlay.classList.remove('visible');
@@ -658,62 +1098,39 @@
       }
     }
 
-    // ── Update sidebar highlight / 更新侧边栏高亮 ──
     function updateSidebarHighlight() {
       const items = sessionListEl.querySelectorAll('.session-item');
       items.forEach((item) => {
-        if (item.dataset.id === conversationId) {
-          item.classList.add('active');
-        } else {
-          item.classList.remove('active');
-        }
+        item.classList.toggle('active', item.dataset.id === conversationId);
       });
     }
 
-    // ── Delete session / 删除 Session ──────────────
     async function deleteSession(id) {
       try {
         const res = await fetch('/api/conversations/' + id, { method: 'DELETE' });
-        if (!res.ok) {
-          console.error('[deleteSession] Failed:', res.status);
-          return;
-        }
-
-        // 如果删除的是当前 session，重置为新对话
-        // If deleted current session, reset to new chat
-        if (id === conversationId) {
-          newChat();
-        }
-
-        // 刷新列表 / Refresh list
+        if (!res.ok) return;
+        if (id === conversationId) newChat();
         await loadSessionList();
       } catch (err) {
         console.error('[deleteSession] Error:', err);
       }
     }
 
-    // ── New Chat / 新对话 ──────────────────────────
     function newChat() {
-      // 中止正在进行的流 / Abort ongoing stream
       if (isStreaming && currentAbortController) {
         currentAbortController.abort();
         isStreaming = false;
         sendBtn.disabled = false;
       }
-
       conversationId = null;
       messagesEl.innerHTML = '<div class="welcome"><h2>FMA Chat</h2>'
         + '<p>Type a message to start chatting with AI</p>'
         + '<p>输入消息开始与 AI 对话</p></div>';
-      // 模型选择器保持当前选中值（方便连续用同一模型创建新对话）
-      // Keep current model selection (convenient for consecutive chats with same model)
       updateSidebarHighlight();
       inputEl.focus();
     }
 
-    // ── Add message to UI / 添加消息到界面 ─────────
     function addMessageToUI(role, content) {
-      // 移除 welcome 信息 / Remove welcome message
       const welcome = messagesEl.querySelector('.welcome');
       if (welcome) welcome.remove();
 
@@ -736,33 +1153,25 @@
       return contentDiv;
     }
 
-    /**
-     * 渲染 token 用量和耗时统计
-     * Render token usage and timing stats below a message
-     */
     function renderUsageStats(messageDiv, usage, durationMs) {
       if (!messageDiv || (!usage && !durationMs)) return;
 
       const statsDiv = document.createElement('div');
       statsDiv.className = 'message-stats';
 
-      // Token 用量 / Token usage
       if (usage) {
         const inTokens = usage.inputTokens || 0;
         const outTokens = usage.outputTokens || 0;
-
         const tokenSpan = document.createElement('span');
         tokenSpan.textContent = inTokens.toLocaleString() + ' in / ' + outTokens.toLocaleString() + ' out';
         statsDiv.appendChild(tokenSpan);
 
-        // 缓存命中 / Cache hit
         if (usage.cachedTokens && usage.cachedTokens > 0) {
           const cacheSpan = document.createElement('span');
           cacheSpan.textContent = usage.cachedTokens.toLocaleString() + ' cached';
           statsDiv.appendChild(cacheSpan);
         }
 
-        // 总 tokens / Total tokens
         if (usage.totalTokens && usage.totalTokens > 0) {
           const totalSpan = document.createElement('span');
           totalSpan.textContent = usage.totalTokens.toLocaleString() + ' total';
@@ -770,11 +1179,9 @@
         }
       }
 
-      // 耗时 / Duration
       if (durationMs && durationMs > 0) {
         const durationSpan = document.createElement('span');
-        const seconds = (durationMs / 1000).toFixed(1);
-        durationSpan.textContent = seconds + 's';
+        durationSpan.textContent = (durationMs / 1000).toFixed(1) + 's';
         statsDiv.appendChild(durationSpan);
       }
 
@@ -782,7 +1189,7 @@
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    // ── Send message / 发送消息 ────────────────────
+    // ── Send message (Chat Mode) / 发送消息 ─────────
     async function sendMessage() {
       const text = inputEl.value.trim();
       if (!text || isStreaming) return;
@@ -791,15 +1198,9 @@
       sendBtn.disabled = true;
       inputEl.value = '';
       inputEl.style.height = 'auto';
-
-      // 创建 AbortController 用于中止请求
-      // Create AbortController for aborting
       currentAbortController = new AbortController();
 
-      // 显示用户消息 / Show user message
       addMessageToUI('user', text);
-
-      // 创建 assistant 消息占位 / Create assistant message placeholder
       const contentDiv = addMessageToUI('assistant', '');
       const cursor = document.createElement('span');
       cursor.className = 'typing-cursor';
@@ -822,13 +1223,12 @@
           throw new Error(err.error || 'HTTP ' + response.status);
         }
 
-        // 读取 SSE 流 / Read SSE stream
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
         let fullText = '';
-        let usageData = null;   // Token 用量 / token usage
-        let timingMs = null;    // 服务端耗时 / server-side duration
+        let usageData = null;
+        let timingMs = null;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -849,28 +1249,19 @@
               if (event.type === 'init' && event.conversationId) {
                 conversationId = event.conversationId;
               }
-
               if (event.type === 'text' && event.content) {
                 fullText += event.content;
                 contentDiv.textContent = fullText;
                 contentDiv.appendChild(cursor);
                 messagesEl.scrollTop = messagesEl.scrollHeight;
               }
-
-              // 收集 token 用量 / Collect token usage
               if (event.type === 'usage' && event.usage) {
                 usageData = event.usage;
-                // CLI 返回的耗时（如果有）/ CLI-reported duration (if available)
-                if (event.durationMs) {
-                  timingMs = event.durationMs;
-                }
+                if (event.durationMs) timingMs = event.durationMs;
               }
-
-              // 服务端计时 / Server-side timing
               if (event.type === 'timing' && event.durationMs) {
                 timingMs = event.durationMs;
               }
-
               if (event.type === 'error') {
                 contentDiv.textContent = fullText || '';
                 const errorSpan = document.createElement('span');
@@ -878,31 +1269,19 @@
                 errorSpan.textContent = '\n[Error / 错误]: ' + event.error;
                 contentDiv.appendChild(errorSpan);
               }
-
               if (event.type === 'done') {
                 cursor.remove();
               }
-            } catch {
-              // 忽略无效 JSON / Ignore invalid JSON
-            }
+            } catch { /* ignore invalid JSON */ }
           }
         }
 
-        // 确保 cursor 被移除 / Ensure cursor is removed
         if (cursor.parentNode) cursor.remove();
-
-        // 如果没有收到任何文本 / If no text received
-        if (!fullText) {
-          contentDiv.textContent = '(No response received / 未收到响应)';
-        }
-
-        // 渲染用量统计 / Render usage stats
+        if (!fullText) contentDiv.textContent = '(No response received / 未收到响应)';
         renderUsageStats(contentDiv.parentElement, usageData, timingMs);
 
       } catch (err) {
         if (err.name === 'AbortError') {
-          // 请求被中止（用户切换了 session）
-          // Request aborted (user switched session)
           if (cursor.parentNode) cursor.remove();
           contentDiv.textContent += '\n(Aborted / 已中止)';
           return;
@@ -925,13 +1304,203 @@
         currentAbortController = null;
         inputEl.focus();
         messagesEl.scrollTop = messagesEl.scrollHeight;
-
-        // 发送完成后刷新侧边栏列表 / Refresh sidebar after sending
         await loadSessionList();
       }
     }
 
-    // ── Utility: format timestamp / 格式化时间 ─────
+    // ══════════════════════════════════════════════════
+    // Pipeline Mode / 流水线模式
+    // ══════════════════════════════════════════════════
+
+    const agentNameMap = { 'Planner': 'planner', 'Coder': 'coder', 'Reviewer': 'reviewer' };
+
+    function updateAgentProgress(agent, state, text) {
+      const key = agentNameMap[agent];
+      if (!key) return;
+
+      const bar = document.getElementById('bar-' + key);
+      const status = document.getElementById('status-' + key);
+      if (!bar || !status) return;
+
+      bar.className = 'progress-bar-fill ' + state;
+      if (state === 'running') bar.style.width = '60%';
+      else if (state === 'done' || state === 'error') bar.style.width = '100%';
+      else bar.style.width = '0%';
+
+      status.className = 'agent-status-text ' + state;
+      if (text) {
+        status.textContent = text;
+      } else {
+        switch (state) {
+          case 'waiting': status.textContent = 'Waiting / 等待中'; break;
+          case 'running': status.textContent = 'Running... / 运行中'; break;
+          case 'done': status.textContent = 'Done / 完成'; break;
+          case 'error': status.textContent = 'Error / 错误'; break;
+        }
+      }
+    }
+
+    function switchOutputTab(tabName) {
+      document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + tabName).classList.add('active');
+      document.querySelectorAll('.output-tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById('output-' + tabName).classList.add('active');
+    }
+
+    function resetPipelineState() {
+      ['Planner', 'Coder', 'Reviewer'].forEach(agent => updateAgentProgress(agent, 'waiting'));
+      document.getElementById('output-plan').textContent = '';
+      document.getElementById('output-code').textContent = '';
+      document.getElementById('output-review').textContent = '';
+      pipelineTotalTime.style.display = 'none';
+      pipelineTotalTime.textContent = '';
+      pipelineTotalTime.style.color = '';
+      switchOutputTab('plan');
+    }
+
+    async function startPipeline() {
+      const task = pipelineTaskInput.value.trim();
+      if (!task || isPipelineRunning) return;
+
+      isPipelineRunning = true;
+      pipelineStartBtn.disabled = true;
+      pipelineStartBtn.textContent = 'Running... / 运行中...';
+
+      resetPipelineState();
+      pipelineProgress.classList.add('visible');
+      pipelineOutput.classList.add('visible');
+
+      const requestBody = {
+        task: task,
+        plannerProvider: document.getElementById('planner-provider').value,
+        plannerModel: document.getElementById('planner-model').value,
+        coderProvider: document.getElementById('coder-provider').value,
+        coderModel: document.getElementById('coder-model').value,
+        reviewerProvider: document.getElementById('reviewer-provider').value,
+        reviewerModel: document.getElementById('reviewer-model').value,
+      };
+
+      const outputs = { Planner: '', Coder: '', Reviewer: '' };
+      const agentTabMap = { 'Planner': 'plan', 'Coder': 'code', 'Reviewer': 'review' };
+      const cursors = {};
+
+      try {
+        const response = await fetch('/api/pipeline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error || 'HTTP ' + response.status);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const jsonStr = line.slice(6).trim();
+            if (!jsonStr) continue;
+
+            try {
+              const event = JSON.parse(jsonStr);
+
+              switch (event.type) {
+                case 'agent-start': {
+                  const agent = event.agent;
+                  updateAgentProgress(agent, 'running');
+                  const tabName = agentTabMap[agent];
+                  if (tabName) switchOutputTab(tabName);
+                  const outputEl = document.getElementById('output-' + tabName);
+                  if (outputEl) {
+                    const cursor = document.createElement('span');
+                    cursor.className = 'typing-cursor';
+                    outputEl.appendChild(cursor);
+                    cursors[agent] = cursor;
+                  }
+                  break;
+                }
+
+                case 'agent-text': {
+                  const agent = event.agent;
+                  const tabName = agentTabMap[agent];
+                  const outputEl = document.getElementById('output-' + tabName);
+                  if (outputEl && event.content) {
+                    outputs[agent] = (outputs[agent] || '') + event.content;
+                    outputEl.textContent = outputs[agent];
+                    if (cursors[agent]) outputEl.appendChild(cursors[agent]);
+                    outputEl.scrollTop = outputEl.scrollHeight;
+                  }
+                  break;
+                }
+
+                case 'agent-done': {
+                  const agent = event.agent;
+                  const seconds = (event.durationMs / 1000).toFixed(1);
+                  updateAgentProgress(agent, 'done', 'Done / 完成 (' + seconds + 's)');
+                  if (cursors[agent] && cursors[agent].parentNode) cursors[agent].remove();
+                  break;
+                }
+
+                case 'agent-error': {
+                  const agent = event.agent;
+                  updateAgentProgress(agent, 'error', 'Error / 错误');
+                  const tabName = agentTabMap[agent];
+                  const outputEl = document.getElementById('output-' + tabName);
+                  if (outputEl) {
+                    if (cursors[agent] && cursors[agent].parentNode) cursors[agent].remove();
+                    outputEl.textContent = (outputs[agent] || '') + '\n\n[ERROR / 错误]: ' + event.error;
+                  }
+                  break;
+                }
+
+                case 'agent-usage': {
+                  console.log('[pipeline] ' + event.agent + ' usage:', event.usage);
+                  break;
+                }
+
+                case 'pipeline-done': {
+                  const totalSec = (event.totalMs / 1000).toFixed(1);
+                  pipelineTotalTime.textContent = 'Total / 总耗时: ' + totalSec + 's';
+                  pipelineTotalTime.style.display = 'block';
+                  break;
+                }
+
+                case 'pipeline-error': {
+                  const totalSec = (event.totalMs / 1000).toFixed(1);
+                  pipelineTotalTime.textContent = 'Failed / 失败 (' + totalSec + 's): ' + event.error;
+                  pipelineTotalTime.style.display = 'block';
+                  pipelineTotalTime.style.color = 'var(--error)';
+                  break;
+                }
+              }
+            } catch { /* ignore invalid JSON */ }
+          }
+        }
+      } catch (err) {
+        console.error('[pipeline] Error:', err);
+        pipelineTotalTime.textContent = 'Error / 错误: ' + err.message;
+        pipelineTotalTime.style.display = 'block';
+        pipelineTotalTime.style.color = 'var(--error)';
+      } finally {
+        isPipelineRunning = false;
+        pipelineStartBtn.disabled = false;
+        pipelineStartBtn.textContent = 'Start Pipeline / 启动流水线';
+      }
+    }
+
+    // ── Utility functions / 工具函数 ─────────────────
     function formatTime(ts) {
       const d = new Date(ts);
       const now = new Date();
@@ -942,11 +1511,9 @@
       if (diffMin < 1) return 'just now / 刚刚';
       if (diffMin < 60) return diffMin + 'm ago / ' + diffMin + '分钟前';
       if (diffHr < 24) return diffHr + 'h ago / ' + diffHr + '小时前';
-
       return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
     }
 
-    // ── Utility: escape HTML / 转义 HTML ──────────
     function escapeHtml(str) {
       const div = document.createElement('div');
       div.textContent = str;

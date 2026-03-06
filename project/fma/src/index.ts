@@ -58,16 +58,16 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('\n❌  Missing ANTHROPIC_API_KEY');
-    console.error('   1. Copy .env.example to .env');
-    console.error('   2. Add your key from https://console.anthropic.com\n');
-    process.exit(1);
-  }
+  // [Phase 2] API key 不再硬检查 — CLI subprocess 自行处理认证
+  // [Phase 2] No more hard API key check — CLI subprocess handles auth
+  // Claude CLI 使用 OAuth 或 ANTHROPIC_API_KEY
+  // Codex CLI 使用 OPENAI_API_KEY
+  // Gemini CLI 使用 Google OAuth
 
   printSeparator(`🚀  Code Team — Task Received`);
   console.log(`\n  "${task}"\n`);
   console.log('  Agents: Planner → Coder → Reviewer');
+  console.log('  Mode: CLI subprocess (multi-model) / CLI 子进程（多模型）');
 
   const startMs = Date.now();
 

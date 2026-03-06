@@ -12,7 +12,17 @@
 // ============================================================
 
 import { runAgent } from '../core/agent.js';
-import type { AgentResult } from '../core/types.js';
+import type { AgentResult, AgentRunOptions } from '../core/types.js';
+
+// ── 模型配置 / Model configuration ──────────────────────────
+// Coder 需要平衡的代码生成能力 → 使用 sonnet（性价比最优）
+// Coder needs balanced code generation → use sonnet (best cost-performance)
+// 可通过环境变量 CODER_PROVIDER / CODER_MODEL 覆盖
+// Override via env vars CODER_PROVIDER / CODER_MODEL
+const CODER_OPTIONS: AgentRunOptions = {
+  provider: (process.env.CODER_PROVIDER as AgentRunOptions['provider']) ?? 'claude',
+  model: process.env.CODER_MODEL ?? 'sonnet',
+};
 
 const SYSTEM_PROMPT = `\
 You are a senior software engineer on a 3-person coding team.
@@ -50,7 +60,8 @@ export async function runCoder(task: string, plan: string): Promise<AgentResult>
   const result = await runAgent(
     'Coder',
     SYSTEM_PROMPT,
-    `## Original Task\n${task}\n\n## Implementation Plan\n${plan}\n\nPlease implement this now.`
+    `## Original Task\n${task}\n\n## Implementation Plan\n${plan}\n\nPlease implement this now.`,
+    CODER_OPTIONS,
   );
 
   console.log(`✅  [Coder] Done in ${result.durationMs}ms`);

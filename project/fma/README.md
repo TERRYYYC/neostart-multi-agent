@@ -62,8 +62,8 @@
 fma/
 ├── src/
 │   ├── core/
-│   │   ├── types.ts          # 共享类型：TaskContext / AgentResult
-│   │   └── agent.ts          # 底层 Runner（可插拔层）— 当前：Anthropic SDK
+│   │   ├── types.ts          # 共享类型：TaskContext / AgentResult / AgentRunOptions
+│   │   └── agent.ts          # 底层 Runner（可插拔层）— Phase 2：CLI subprocess 多模型
 │   ├── agents/
 │   │   ├── planner.ts        # Planner Agent
 │   │   ├── coder.ts          # Coder Agent
@@ -71,11 +71,11 @@ fma/
 │   ├── chat/                  # Chat Mode（Web 聊天模块）
 │   │   ├── cli-runner.ts     # CLI subprocess 抽象层（claude/codex/gemini）
 │   │   ├── conversation.ts   # 对话管理器（JSON 文件持久化 + 内存缓存）
-│   │   ├── server.ts         # HTTP 服务器 + SSE 流式响应
+│   │   ├── server.ts         # HTTP 服务器 + SSE 流式响应 + Pipeline SSE 路由
 │   │   ├── types.ts          # 聊天模块类型定义
 │   │   └── index.ts          # Chat Mode 入口
 │   ├── public/
-│   │   └── index.html        # Web UI（侧边栏 Session 管理 + 聊天界面）
+│   │   └── index.html        # Web UI（Chat Mode + Pipeline Mode + 侧边栏 Session 管理）
 │   └── index.ts              # Orchestrator + CLI 入口（Agent Pipeline）
 ├── .data/                     # 运行时数据（自动生成，已 gitignore）
 │   └── conversations/        # 对话持久化 JSON 文件
@@ -106,7 +106,7 @@ ctx.review = reviewResult.output             // Reviewer 追加 / Reviewer appen
 
 ## 当前版本 / Current Version
 
-### v1.3 — MVP + Chat Mode + 多模型 + Token 统计 + CLI 健壮性（2026-03-01 ~ 03-05）
+### v1.5 — MVP + Chat Mode + Pipeline Web UI + 多模型 + Phase 2.5（2026-03-01 ~ 03-05）
 
 **Agent Pipeline 能力 / Agent Pipeline Capabilities**
 
@@ -116,7 +116,8 @@ ctx.review = reviewResult.output             // Reviewer 追加 / Reviewer appen
 - ✅ **Reviewer Agent**：P1/P2/P3 分级审查 + 输出最终修正代码
 - ✅ TaskContext 不可变追加（完整可审计历史）
 - ✅ 每个 Agent 独立 system prompt（人格隔离，防止角色越界）
-- ✅ 错误处理（API Key 缺失、API 错误、响应类型异常）
+- ✅ **[Phase 2] CLI subprocess 多模型**（替换 Anthropic SDK，支持 Claude/Codex/Gemini）
+- ✅ **[Phase 2] 成本分层**（Planner=opus, Coder=sonnet, Reviewer=haiku，环境变量可覆盖）
 - ✅ TypeScript strict mode，零 `any`，零类型错误
 
 **Chat Mode 能力 / Chat Mode Capabilities**（2026-03-02 ~ 03-03 新增）
@@ -129,6 +130,8 @@ ctx.review = reviewResult.output             // Reviewer 追加 / Reviewer appen
 - ✅ 移动端响应式布局（侧边栏可折叠）
 - ✅ **多模型实时切换**（Claude / Codex / Gemini，UI 下拉选择，每请求选模型）
 - ✅ **Token 用量 + 响应计时**（每条 assistant 消息显示 input/output/cached tokens + 耗时）
+- ✅ **[Phase 2.5] Web UI Pipeline 模式**（浏览器触发 Pipeline + SSE 实时进度 + Agent 输出 Tab）
+- ✅ **[Phase 2.5] Pipeline 独立 Agent 配置**（每个 Agent 可选 provider + model）
 
 **CLI 健壮性 / CLI Robustness**（2026-03-05 新增）
 
@@ -146,13 +149,31 @@ ctx.review = reviewResult.output             // Reviewer 追加 / Reviewer appen
 
 **技术栈 / Tech Stack**
 
+> 历史版本（v1.0 MVP 初版，仅 Agent Pipeline）/ Historical (v1.0 MVP, Agent Pipeline only)
+
 | 层 | 选型 | 理由 |
 |----|------|------|
 | 语言 | TypeScript 5.8 + ES2022 | 与 p004/p006 一致，类型即文档 |
 | 运行时 | Node.js + tsx（无编译步骤） | 开发体验最简 |
-| AI 调用 | Anthropic SDK `^0.37.0` | MVP 阶段代码最少；Phase 2 换 CLI |
+| ~~AI 调用~~ | ~~Anthropic SDK `^0.37.0`~~ | ~~MVP 阶段代码最少；Phase 2 换 CLI~~ |
 | 类型检查 | TypeScript strict mode | 错误在编译时暴露，不在运行时爆 |
-| Runtime 依赖数 | 1 个 (`@anthropic-ai/sdk`) | 保持极简，无隐性风险 |
+| ~~Runtime 依赖数~~ | ~~1 个 (`@anthropic-ai/sdk`)~~ | ~~保持极简，无隐性风险~~ |
+
+> 当前实际（v1.3，Agent Pipeline + Chat Mode）/ Current (v1.3, Agent Pipeline + Chat Mode)
+
+| 层               | 选型                                         | 说明                                                           |
+| --------------- | ------------------------------------------ | ------------------------------------------------------------ |
+| 语言              | TypeScript 5.8 + ES2022                    | 与 p004/p006 一致，类型即文档                                         |
+| 运行时             | Node.js + tsx 4.19（无编译步骤）                  | 开发体验最简                                                       |
+| AI 调用（Pipeline） | CLI subprocess（复用 `cli-runner.ts`）       | Agent Pipeline 模式：Planner/Coder/Reviewer，支持多模型 + 成本分层     |
+| AI 调用（Chat）     | CLI subprocess（`child_process.spawn`）      | Chat Mode：调用 `claude`/`codex`/`gemini` CLI，支持 session resume |
+| HTTP 服务         | 原生 `node:http`                             | 零框架，含 SSE 流式响应                                               |
+| 前端              | Vanilla JS + CSS（零框架）                      | `index.html` 单文件，Fetch API + EventSource（SSE）                |
+| 进程管理            | `node:child_process` + `node:events`       | 心跳超时、优雅退出（SIGTERM/SIGINT）、自动重试 + 线性退避                        |
+| 持久化             | 原生 `node:fs`（JSON 文件）                      | write-through cache，重启不丢失                                    |
+| 日志              | 自研 `logger.ts`（零依赖）                        | JSON line 格式，支持 LOG_LEVEL 分级                                 |
+| 类型检查            | TypeScript strict mode                     | 零 `any`，错误在编译时暴露                                             |
+| Runtime 依赖数     | 1 个（`@anthropic-ai/sdk`），其余全部 Node.js 内置模块 | 极简原则不变，Chat Mode 无新增运行时依赖                                    |
 
 ---
 
@@ -183,11 +204,9 @@ npm run chat
 
 ## 架构决策记录 / Architecture Decision Records
 
-### ADR-001：MVP 用 SDK 而非 CLI
-**决定**：`src/core/agent.ts` 使用 Anthropic SDK。
-**背景**：p006 的 ADR-001 推荐 CLI，原因是 OAuth + 多模型支持。
-**本项目判断**：MVP 单模型（Claude only）+ API Key 可用，SDK 代码量减少 60%，对新手友好。
-**影响**：`core/agent.ts` 设计为可插拔层，Phase 2 直接替换，上层 Agent 代码零修改。
+### ADR-001：~~MVP 用 SDK 而非 CLI~~ → Phase 2 已完成 CLI 替换
+**原决定**：`src/core/agent.ts` 使用 Anthropic SDK（MVP 阶段）。
+**Phase 2 更新**：已替换为 CLI subprocess 调用，复用 `chat/cli-runner.ts` 基础设施。支持 Claude/Codex/Gemini 三种 provider，每个 Agent 可独立配置模型（成本分层：Planner=opus, Coder=sonnet, Reviewer=haiku）。上层 Agent 代码零修改，可插拔层设计验证成功。
 
 ### ADR-002：顺序流水线而非并行
 **决定**：Planner → Coder → Reviewer 严格串行。
@@ -206,20 +225,20 @@ npm run chat
 > 原则：每个 Phase 向后兼容，替换可插拔层，不推倒重来。
 > *Principle: Each phase stays backward-compatible; replace pluggable layers, never full rewrites.*
 
-| Phase | 目标 | 核心改动 | 参考来源 |
-|-------|------|----------|----------|
-| ✅ **v0.1 MVP** | 顺序流水线，3 Agent，< 200 行 | — | 当前 |
-| ✅ **Chat Mode** | Web UI + CLI Runner + Session 管理 + JSON 持久化 | 新增 `chat/` 模块 | 计划外（为后续 Phase 铺路） |
-| ✅ **多模型 + Token** | Chat Mode 真实多模型切换 + Token 用量显示 | `cli-runner.ts` 重写 | 提前实现 Phase 2 部分目标 |
-| **Phase 2** | CLI runner，多模型（Claude + Gemini + GPT） | 替换 `core/agent.ts` | p006 ADR-001 |
-| **Phase 3** | Filesystem Queue，Agent 异步解耦，断点续跑 | 替换 Orchestrator 调用方式 | p003 filesystem primitive |
-| **Phase 4** | 图编排 + 反馈循环 + Tester Agent | DAG + 条件边 | LangGraph + p004 |
-| **Phase 5** | Redis 持久化（替换 JSON），本地后端服务 | JSON → Redis 迁移 | p006 lesson-06 三层防御 |
-| **Phase 6** | 正式 Web 前端，Agent DAG 可视化 | Next.js + XY Flow | p004 UIBus + p005 DeerFlow |
+| Phase             | 目标                                          | 核心改动                 | 参考来源                       |
+| ----------------- | ------------------------------------------- | -------------------- | -------------------------- |
+| ✅ **v0.1 MVP**    | 顺序流水线，3 Agent，< 200 行                       | —                    | 当前                         |
+| ✅ **Chat Mode**   | Web UI + CLI Runner + Session 管理 + JSON 持久化 | 新增 `chat/` 模块        | 计划外（为后续 Phase 铺路）          |
+| ✅ **多模型 + Token** | Chat Mode 真实多模型切换 + Token 用量显示              | `cli-runner.ts` 重写   | 提前实现 Phase 2 部分目标          |
+| ✅ **Phase 2**     | CLI runner，多模型（Claude + Gemini + GPT）        | 替换 `core/agent.ts`   | p006 ADR-001               |
+| **Phase 3**       | Filesystem Queue，Agent 异步解耦，断点续跑            | 替换 Orchestrator 调用方式 | p003 filesystem primitive  |
+| **Phase 4**       | 图编排 + 反馈循环 + Tester Agent                   | DAG + 条件边            | LangGraph + p004           |
+| **Phase 5**       | Redis 持久化（替换 JSON），本地后端服务                   | JSON → Redis 迁移      | p006 lesson-06 三层防御        |
+| **Phase 6**       | 正式 Web 前端，Agent DAG 可视化                     | Next.js + XY Flow    | p004 UIBus + p005 DeerFlow |
 
 > 详细演进方案见 `future-structure.md`，设计原则见 `xiaoming-experience.md`
 
 ---
 
 *Built on lessons from: p003 · p004 · p006 · robust-invoke-hw2.js*
-*Created: 2026-03-01 | Updated: 2026-03-05 | Version: 1.3 | Language: TypeScript*
+*Created: 2026-03-01 | Updated: 2026-03-05 | Version: 1.5 | Language: TypeScript*

@@ -72,11 +72,20 @@ User Input (CLI)
   ✅ Token 用量 + 响应计时（每条 assistant 消息显示 input/output/cached tokens + 耗时）
   ✅ Bug 修复：Codex item.completed 解析 + Gemini 用户回显过滤
 
+已额外完成（v1.3，2026-03-05）：
+  ✅ 重试 + 超时保护（心跳超时 120s，自动重试 3 次，线性退避）
+  ✅ 优雅进程清理（SIGTERM/SIGINT 信号处理，防孤儿进程）
+  ✅ stderr 滑动窗口（2000 字符，防内存泄漏）
+
+已额外完成（v1.4，2026-03-05 — Phase 2）：
+  ✅ Agent Pipeline 多模型 CLI Runner（core/agent.ts SDK → CLI subprocess）
+  ✅ 成本分层配置（Planner=opus, Coder=sonnet, Reviewer=haiku）
+  ✅ 环境变量覆盖（PLANNER_PROVIDER/MODEL, CODER_PROVIDER/MODEL, REVIEWER_PROVIDER/MODEL）
+
 仍然缺少：
-  ⏳ 重试 + 超时保护
   ⏳ 反馈循环（Reviewer → Coder）
   ⏳ 持久化迁移到 Redis（当前 JSON 文件为过渡方案）
-  ⏳ Agent Pipeline 模式的多模型支持（当前仅 Chat Mode 支持多模型）
+  ✅ Web UI 中触发 Pipeline 模式（Phase 2.5 已完成）
 ```
 
 ---
@@ -87,28 +96,100 @@ User Input (CLI)
 ### 里程碑 A：本地 CLI 工具（工程师自用）
 ### ─────────────────────────────────────────
 
-#### Phase 2 — v0.2：多模型 + CLI Runner + 韧性
+#### Phase 2 — v0.2：多模型 + CLI Runner + 韧性 ✅ 已完成
 **目标**：把 SDK 换成 CLI subprocess，同时支持 Claude / GPT-Codex / Gemini；加入重试和超时。
 **预估工作量**：2-3 天
-**⚠️ 实际进展（2026-03-03）**：Chat Mode 已提前实现多模型 CLI Runner（`cli-runner.ts`），支持 Claude / Codex / Gemini 的真实 CLI 调用。剩余工作：Agent Pipeline 模式（`core/agent.ts`）仍用 Anthropic SDK，尚未切换为 CLI subprocess；重试 + 超时保护尚未实现。
+**✅ 完成日期**：2026-03-05
+
+**实际完成内容：**
+- ✅ `core/agent.ts` 从 Anthropic SDK 替换为 CLI subprocess（复用 `cli-runner.ts`）
+- ✅ 每个 Agent 独立 provider + model 配置（Planner=opus, Coder=sonnet, Reviewer=haiku）
+- ✅ 环境变量覆盖（`PLANNER_PROVIDER`/`PLANNER_MODEL` 等 6 个新变量）
+- ✅ 自动重试 + 心跳超时（继承自 cli-runner.ts）
+- ✅ stderr 滑动窗口 + 优雅进程清理（继承自 cli-runner.ts）
+- ✅ Token 用量日志（agent.usage 事件）
+- ✅ System prompt 通过 `<system>` XML 标签前置拼接
 
 **核心改动：**
 ```
-src/core/agent.ts（唯一需要改的文件）
-  before：client.messages.create(...)
-  after： spawn('claude', ['--output-format', 'stream-json', ...])
-          spawn('gemini', [...])
-          spawn('codex', ['exec', '--json', ...])
+src/core/agent.ts（主要改动文件）
+  before：client.messages.create(...)       ← Anthropic SDK
+  after： runCliStreamWithRetry(provider, prompt, [], sessionId)  ← CLI subprocess
+          collectStreamOutput() 将流式输出收集为 Promise<string>
 ```
 
-**新增能力：**
-- 每个 Agent 可独立指定模型（Planner=opus, Coder=sonnet, Reviewer=haiku）
-- 指数退避重试（最多 3 次，p006 lesson-02 教训：AI 会偶尔失败）
-- 超时保护（30 分钟，参考 p006 lesson-02 现实 timeout）
-- stderr 监听（不只看 stdout，p006 lesson-02 核心原则）
-- 多模型成本对比日志
+**剩余工作（Phase 2.5 可选）：**
+- ⏳ 多模型成本对比日志（已有 token 用量，待加价格计算）
+- ⏳ Web UI 中触发 Pipeline 模式（当前仅 CLI 入口）
 
 **参考**：p006 ADR-001（CLI > SDK）、p006 lesson-02（生产级 CLI 工程）
+
+**已知技术债**：
+- TD-09: `core/agent.ts` 依赖 `chat/cli-runner.ts`（core → chat 方向），Phase 3 应提取 shared subprocess 层
+
+---
+
+#### Phase 2.5 — v0.2.5：Web UI Pipeline 模式 ✅ 已完成
+**目标**：在现有 Chat Mode Web UI 中增加 Pipeline 模式入口，让用户可以通过浏览器触发 Planner → Coder → Reviewer 流水线，实时查看每个 Agent 的进度和输出。
+**预估工作量**：1-2 天
+**✅ 完成日期**：2026-03-05
+
+**设计思路：**
+```
+┌─────────────────────────────────────────────────────┐
+│  Web UI — Pipeline Mode                             │
+│                                                     │
+│  ┌─ Mode Selector ───────────────────────────────┐  │
+│  │  [💬 Chat Mode]  [🚀 Pipeline Mode]           │  │
+│  └───────────────────────────────────────────────┘  │
+│                                                     │
+│  ┌─ Pipeline Input ──────────────────────────────┐  │
+│  │  [textarea: 编程任务描述]                       │  │
+│  │  [model config: Planner/Coder/Reviewer 模型]   │  │
+│  │  [▶ Start Pipeline]                           │  │
+│  └───────────────────────────────────────────────┘  │
+│                                                     │
+│  ┌─ Pipeline Progress ───────────────────────────┐  │
+│  │  🧠 Planner   [██████████] ✅ Done (12.3s)    │  │
+│  │  💻 Coder     [████░░░░░░] Running...          │  │
+│  │  🔍 Reviewer  [░░░░░░░░░░] Waiting             │  │
+│  └───────────────────────────────────────────────┘  │
+│                                                     │
+│  ┌─ Agent Output Tabs ───────────────────────────┐  │
+│  │  [Plan] [Code] [Review]                        │  │
+│  │  （每个 Tab 显示对应 Agent 的实时流式输出）       │  │
+│  └───────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+```
+
+**核心改动：**
+
+1. **新增 API**：`POST /api/pipeline` — 接收任务描述 + 模型配置，返回 SSE 流
+   - SSE 事件类型：`agent-start`、`agent-text`、`agent-done`、`pipeline-done`
+   - 复用现有 `runAgent()`，包装为 SSE 流式输出
+
+2. **修改 `src/chat/server.ts`**：新增 `/api/pipeline` 路由
+
+3. **修改 `src/public/index.html`**：
+   - 顶部 Mode 切换器（Chat / Pipeline）
+   - Pipeline 模式：任务输入框 + 进度条 + Agent 输出 Tab
+
+4. **不修改**：`core/agent.ts`、`agents/*.ts`、`cli-runner.ts`
+
+**参考**：Chat Mode SSE 流式实现（server.ts）、Phase 6 Artifact Panel 设计预演
+
+**实际完成内容：**
+- ✅ `POST /api/pipeline` SSE 路由 — 接收任务 + Agent 配置，流式推送进度
+- ✅ SSE 事件类型：`pipeline-init`, `agent-start`, `agent-text`, `agent-done`, `agent-error`, `agent-usage`, `pipeline-done`, `pipeline-error`
+- ✅ Mode Switcher — Chat / Pipeline 顶部切换
+- ✅ Pipeline 任务输入区 — textarea + 每个 Agent 可选 provider + model
+- ✅ Pipeline 进度条 — Waiting → Running（脉冲动画）→ Done（绿色）/ Error（红色）
+- ✅ Pipeline 输出 Tabs — Plan / Code / Review 实时流式显示，自动切换
+- ✅ 快捷键 — Ctrl/Cmd+Enter 启动 Pipeline
+- ✅ 零缓冲流式 — `runCliStreamWithRetry` → `emitter.on('data')` → `res.write(SSE)` 直达浏览器
+
+**已知技术债：**
+- TD-10: System prompt 在 `server.ts`（内联）和 `agents/*.ts` 中重复，Phase 4 提取共享配置
 
 ---
 
@@ -383,7 +464,7 @@ Chat Mode 已提前实现了部分 Phase 5 的内容：HTTP 服务器（Node.js 
 
 | 编号 | 债务描述 | 引入于 | 偿还于 | 风险 |
 |------|----------|--------|--------|------|
-| TD-01 | Anthropic SDK 锁定，换模型成本高 | v0.1 | Phase 2 | 高 |
+| ~~TD-01~~ | ~~Anthropic SDK 锁定，换模型成本高~~ | ~~v0.1~~ | ~~Phase 2~~ ✅ 已还清 | ~~高~~ |
 | TD-02 | TaskContext 是 TypeScript interface，无运行时校验 | v0.1 | Phase 3 | 中 |
 | TD-03 | 无结构化日志，调试依赖 console.log | v0.1 | Phase 3 | 中 |
 | TD-04 | Filesystem Queue 无事务，进程崩溃可能丢任务 | Phase 3 | Phase 5 | 高 |
@@ -391,6 +472,7 @@ Chat Mode 已提前实现了部分 Phase 5 的内容：HTTP 服务器（Node.js 
 | TD-06 | 无 API 鉴权（本地服务假设可信网络） | Phase 5 | Phase 7 | 低→中 |
 | TD-07 | 对话持久化用 JSON 文件，无事务保证，大量数据时性能下降 | v0.1 Chat Mode | Phase 5 | 低（单用户本地工具，短期够用） |
 | TD-08 | Chat Mode HTTP 服务器用 Node.js 内置 http，无中间件框架 | v0.1 Chat Mode | Phase 5 | 低（Phase 5 迁移到 Fastify） |
+| TD-09 | `core/agent.ts` 依赖 `chat/cli-runner.ts`（core → chat 依赖方向） | Phase 2 | Phase 3 | 低（提取 shared subprocess 层） |
 
 ---
 
@@ -423,6 +505,7 @@ Chat Mode 已提前实现了部分 Phase 5 的内容：HTTP 服务器（Node.js 
 
 ---
 
-*版本：v1.2 | 日期：2026-03-03 | 作者：架构师视角（怀疑一切，验证一切）*
+*版本：v1.3 | 日期：2026-03-05 | 作者：架构师视角（怀疑一切，验证一切）*
+*v1.3 更新：Phase 2 完成标记，新增 TD-09（core→chat 依赖），更新当前状态反映 CLI 健壮性和 Pipeline 多模型*
 *v1.2 更新：反映多模型实际切换 + Token 用量 + Bug 修复的进展，Phase 2 补充实际进展备注*
 *v1.1 更新：反映 Chat Mode + JSON 持久化的实际进展，补充 TD-07/TD-08 技术债务*

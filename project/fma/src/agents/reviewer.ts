@@ -16,7 +16,17 @@
 // ============================================================
 
 import { runAgent } from '../core/agent.js';
-import type { AgentResult } from '../core/types.js';
+import type { AgentResult, AgentRunOptions } from '../core/types.js';
+
+// ── 模型配置 / Model configuration ──────────────────────────
+// Reviewer 做结构化审查 → 使用 haiku（结构化任务，省成本）
+// Reviewer does structured review → use haiku (structured task, saves cost)
+// 可通过环境变量 REVIEWER_PROVIDER / REVIEWER_MODEL 覆盖
+// Override via env vars REVIEWER_PROVIDER / REVIEWER_MODEL
+const REVIEWER_OPTIONS: AgentRunOptions = {
+  provider: (process.env.REVIEWER_PROVIDER as AgentRunOptions['provider']) ?? 'claude',
+  model: process.env.REVIEWER_MODEL ?? 'haiku',
+};
 
 const SYSTEM_PROMPT = `\
 You are a senior code reviewer on a 3-person coding team.
@@ -68,7 +78,8 @@ export async function runReviewer(
   const result = await runAgent(
     'Reviewer',
     SYSTEM_PROMPT,
-    `## Original Task\n${task}\n\n## Implementation Plan\n${plan}\n\n## Code to Review\n${code}`
+    `## Original Task\n${task}\n\n## Implementation Plan\n${plan}\n\n## Code to Review\n${code}`,
+    REVIEWER_OPTIONS,
   );
 
   console.log(`✅  [Reviewer] Done in ${result.durationMs}ms`);

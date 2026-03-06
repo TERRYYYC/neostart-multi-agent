@@ -12,7 +12,17 @@
 // ============================================================
 
 import { runAgent } from '../core/agent.js';
-import type { AgentResult } from '../core/types.js';
+import type { AgentResult, AgentRunOptions } from '../core/types.js';
+
+// ── 模型配置 / Model configuration ──────────────────────────
+// Planner 需要深度推理能力 → 使用 opus（最强推理模型）
+// Planner needs deep reasoning → use opus (strongest reasoning model)
+// 可通过环境变量 PLANNER_PROVIDER / PLANNER_MODEL 覆盖
+// Override via env vars PLANNER_PROVIDER / PLANNER_MODEL
+const PLANNER_OPTIONS: AgentRunOptions = {
+  provider: (process.env.PLANNER_PROVIDER as AgentRunOptions['provider']) ?? 'claude',
+  model: process.env.PLANNER_MODEL ?? 'opus',
+};
 
 // Agent 的人格与边界 — system prompt 是 Agent 最重要的参数
 // Agent personality & boundaries — system prompt is the most critical parameter
@@ -47,7 +57,8 @@ export async function runPlanner(task: string): Promise<AgentResult> {
   const result = await runAgent(
     'Planner',
     SYSTEM_PROMPT,
-    `Please create an implementation plan for the following task:\n\n${task}`
+    `Please create an implementation plan for the following task:\n\n${task}`,
+    PLANNER_OPTIONS,
   );
 
   console.log(`✅  [Planner] Done in ${result.durationMs}ms`);
