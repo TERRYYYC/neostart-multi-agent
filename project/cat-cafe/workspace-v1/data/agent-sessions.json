@@ -1,0 +1,42 @@
+[
+  {
+    "id": "QpfNVYf9FkRynjv4ihrlA",
+    "threadId": "Xlw_WIc5vkXqhz4RCG-X3",
+    "agentId": "cat-maine",
+    "status": "active",
+    "createdAt": "2026-03-07T00:10:03.755Z",
+    "lastActiveAt": "2026-03-07T00:10:03.755Z"
+  },
+  {
+    "id": "XtIjtVm1pUlei7xK93hbt",
+    "threadId": "-nTo2PPgRlC7OlvPOEoN6",
+    "agentId": "cat-siamese",
+    "status": "active",
+    "createdAt": "2026-03-07T00:10:14.166Z",
+    "lastActiveAt": "2026-03-07T00:10:14.166Z"
+  },
+  {
+    "id": "lZULjgSCFBxkH9OOO50Qq",
+    "threadId": "J8Uk-zp9CE7KSwLWGf8MA",
+    "agentId": "cat-maine",
+    "status": "active",
+    "createdAt": "2026-03-07T00:14:20.048Z",
+    "lastActiveAt": "2026-03-07T00:14:20.048Z"
+  },
+  {
+    "id": "kHHEHb-KyfXhmmoXrTw7a",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "agentId": "cat-maine",
+    "status": "active",
+    "createdAt": "2026-03-07T00:24:21.164Z",
+    "lastActiveAt": "2026-03-07T00:24:21.164Z"
+  },
+  {
+    "id": "6C42yHAPym5E8LdXfLwcx",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "agentId": "cat-siamese",
+    "status": "active",
+    "createdAt": "2026-03-07T00:24:41.971Z",
+    "lastActiveAt": "2026-03-07T00:24:57.989Z"
+  }
+]

@@ -1,0 +1,517 @@
+[
+  {
+    "id": "mSGKhXZZF6aHFrrILYoJp",
+    "threadId": "Xlw_WIc5vkXqhz4RCG-X3",
+    "invocationId": "dxsce0lwl12uC5xO0QeiM",
+    "eventType": "invocation.created",
+    "visibility": "private",
+    "payload": {
+      "targetAgentId": "cat-maine",
+      "mention": "maine"
+    },
+    "createdAt": "2026-03-07T00:10:03.748Z"
+  },
+  {
+    "id": "pc-CkpPJq8eyIpldBDrqw",
+    "threadId": "Xlw_WIc5vkXqhz4RCG-X3",
+    "invocationId": "dxsce0lwl12uC5xO0QeiM",
+    "sessionId": "QpfNVYf9FkRynjv4ihrlA",
+    "eventType": "session.created",
+    "visibility": "private",
+    "payload": {
+      "sessionId": "QpfNVYf9FkRynjv4ihrlA",
+      "agentId": "cat-maine"
+    },
+    "createdAt": "2026-03-07T00:10:03.764Z"
+  },
+  {
+    "id": "sNseeQb3O4uqkQXSGVTxt",
+    "threadId": "Xlw_WIc5vkXqhz4RCG-X3",
+    "invocationId": "dxsce0lwl12uC5xO0QeiM",
+    "sessionId": "QpfNVYf9FkRynjv4ihrlA",
+    "eventType": "invocation.started",
+    "visibility": "private",
+    "payload": {
+      "agentName": "Maine",
+      "model": "claude-sonnet-4-6"
+    },
+    "createdAt": "2026-03-07T00:10:03.779Z"
+  },
+  {
+    "id": "NVBB5S0hhwJFiakHVkTw1",
+    "threadId": "Xlw_WIc5vkXqhz4RCG-X3",
+    "invocationId": "dxsce0lwl12uC5xO0QeiM",
+    "sessionId": "QpfNVYf9FkRynjv4ihrlA",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "[Maine] I received your task: \"ple"
+    },
+    "createdAt": "2026-03-07T00:10:03.784Z"
+  },
+  {
+    "id": "SwiDhml1Q5XPtU5iCoo7U",
+    "threadId": "Xlw_WIc5vkXqhz4RCG-X3",
+    "invocationId": "dxsce0lwl12uC5xO0QeiM",
+    "sessionId": "QpfNVYf9FkRynjv4ihrlA",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "ase review this code\". This is a s"
+    },
+    "createdAt": "2026-03-07T00:10:03.789Z"
+  },
+  {
+    "id": "JHUq114LxfrX6v01QlaW4",
+    "threadId": "Xlw_WIc5vkXqhz4RCG-X3",
+    "invocationId": "dxsce0lwl12uC5xO0QeiM",
+    "sessionId": "QpfNVYf9FkRynjv4ihrlA",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "tub response from the Maine cat."
+    },
+    "createdAt": "2026-03-07T00:10:03.826Z"
+  },
+  {
+    "id": "VSJjsIvd3rJFGfEdORX30",
+    "threadId": "Xlw_WIc5vkXqhz4RCG-X3",
+    "invocationId": "dxsce0lwl12uC5xO0QeiM",
+    "sessionId": "QpfNVYf9FkRynjv4ihrlA",
+    "eventType": "invocation.completed",
+    "visibility": "private",
+    "payload": {
+      "replyMessageId": "m42JUUFCn-WDoRnZlFsKc"
+    },
+    "createdAt": "2026-03-07T00:10:03.878Z"
+  },
+  {
+    "id": "LM_dQT7XNtF4yRNXyBb38",
+    "threadId": "-nTo2PPgRlC7OlvPOEoN6",
+    "invocationId": "RMiScMEmAWkRXzhzdGfwi",
+    "eventType": "invocation.created",
+    "visibility": "private",
+    "payload": {
+      "targetAgentId": "cat-siamese",
+      "mention": "siamese"
+    },
+    "createdAt": "2026-03-07T00:10:14.163Z"
+  },
+  {
+    "id": "nLA5IEvb0Wcp06Lx83mlP",
+    "threadId": "-nTo2PPgRlC7OlvPOEoN6",
+    "invocationId": "RMiScMEmAWkRXzhzdGfwi",
+    "sessionId": "XtIjtVm1pUlei7xK93hbt",
+    "eventType": "session.created",
+    "visibility": "private",
+    "payload": {
+      "sessionId": "XtIjtVm1pUlei7xK93hbt",
+      "agentId": "cat-siamese"
+    },
+    "createdAt": "2026-03-07T00:10:14.168Z"
+  },
+  {
+    "id": "jv2khtKHg6qwJy4ShwEM-",
+    "threadId": "-nTo2PPgRlC7OlvPOEoN6",
+    "invocationId": "RMiScMEmAWkRXzhzdGfwi",
+    "sessionId": "XtIjtVm1pUlei7xK93hbt",
+    "eventType": "invocation.started",
+    "visibility": "private",
+    "payload": {
+      "agentName": "Siamese",
+      "model": "claude-haiku-4-5-20251001"
+    },
+    "createdAt": "2026-03-07T00:10:14.173Z"
+  },
+  {
+    "id": "IkhfWWaYgXLKco-Sre4Sv",
+    "threadId": "-nTo2PPgRlC7OlvPOEoN6",
+    "invocationId": "RMiScMEmAWkRXzhzdGfwi",
+    "sessionId": "XtIjtVm1pUlei7xK93hbt",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "[Siamese] I received your task"
+    },
+    "createdAt": "2026-03-07T00:10:14.175Z"
+  },
+  {
+    "id": "Qw9qhVHc15FBznJAVR5p-",
+    "threadId": "-nTo2PPgRlC7OlvPOEoN6",
+    "invocationId": "RMiScMEmAWkRXzhzdGfwi",
+    "sessionId": "XtIjtVm1pUlei7xK93hbt",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": ": \"say hello\". This is a stub "
+    },
+    "createdAt": "2026-03-07T00:10:14.177Z"
+  },
+  {
+    "id": "Q_8BJ0I46Ym7VMVqqcBsl",
+    "threadId": "-nTo2PPgRlC7OlvPOEoN6",
+    "invocationId": "RMiScMEmAWkRXzhzdGfwi",
+    "sessionId": "XtIjtVm1pUlei7xK93hbt",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "response from the Siamese cat."
+    },
+    "createdAt": "2026-03-07T00:10:14.180Z"
+  },
+  {
+    "id": "n0vlorNhtMfBcFwMYV7cb",
+    "threadId": "-nTo2PPgRlC7OlvPOEoN6",
+    "invocationId": "RMiScMEmAWkRXzhzdGfwi",
+    "sessionId": "XtIjtVm1pUlei7xK93hbt",
+    "eventType": "invocation.completed",
+    "visibility": "private",
+    "payload": {
+      "replyMessageId": "o_HKlF_e6zcroRyDIOfEs"
+    },
+    "createdAt": "2026-03-07T00:10:14.184Z"
+  },
+  {
+    "id": "3Z5nFuNGKu9h_IzPSa0Dg",
+    "threadId": "J8Uk-zp9CE7KSwLWGf8MA",
+    "invocationId": "-MNyX5--6i9O6zB2Dh6gR",
+    "eventType": "invocation.created",
+    "visibility": "private",
+    "payload": {
+      "targetAgentId": "cat-maine",
+      "mention": "maine"
+    },
+    "createdAt": "2026-03-07T00:14:20.046Z"
+  },
+  {
+    "id": "cNMA6EcuzUeQUKVrdyCqd",
+    "threadId": "J8Uk-zp9CE7KSwLWGf8MA",
+    "invocationId": "-MNyX5--6i9O6zB2Dh6gR",
+    "sessionId": "lZULjgSCFBxkH9OOO50Qq",
+    "eventType": "session.created",
+    "visibility": "private",
+    "payload": {
+      "sessionId": "lZULjgSCFBxkH9OOO50Qq",
+      "agentId": "cat-maine"
+    },
+    "createdAt": "2026-03-07T00:14:20.049Z"
+  },
+  {
+    "id": "yFMtImKYVoX0AY8aq1kZX",
+    "threadId": "J8Uk-zp9CE7KSwLWGf8MA",
+    "invocationId": "-MNyX5--6i9O6zB2Dh6gR",
+    "sessionId": "lZULjgSCFBxkH9OOO50Qq",
+    "eventType": "invocation.started",
+    "visibility": "private",
+    "payload": {
+      "agentName": "Maine",
+      "model": "claude-sonnet-4-6"
+    },
+    "createdAt": "2026-03-07T00:14:20.052Z"
+  },
+  {
+    "id": "B2DbLNL9AsXZKyQ1pgJWQ",
+    "threadId": "J8Uk-zp9CE7KSwLWGf8MA",
+    "invocationId": "-MNyX5--6i9O6zB2Dh6gR",
+    "sessionId": "lZULjgSCFBxkH9OOO50Qq",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "[Maine] I received your task"
+    },
+    "createdAt": "2026-03-07T00:14:20.053Z"
+  },
+  {
+    "id": "QewGx2K05HC8SLtI-MWX8",
+    "threadId": "J8Uk-zp9CE7KSwLWGf8MA",
+    "invocationId": "-MNyX5--6i9O6zB2Dh6gR",
+    "sessionId": "lZULjgSCFBxkH9OOO50Qq",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": ": \"analyze\". This is a stub "
+    },
+    "createdAt": "2026-03-07T00:14:20.054Z"
+  },
+  {
+    "id": "ySp35pma9DEV9FvdgBKny",
+    "threadId": "J8Uk-zp9CE7KSwLWGf8MA",
+    "invocationId": "-MNyX5--6i9O6zB2Dh6gR",
+    "sessionId": "lZULjgSCFBxkH9OOO50Qq",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "response from the Maine cat."
+    },
+    "createdAt": "2026-03-07T00:14:20.055Z"
+  },
+  {
+    "id": "pLZB9rZOURkrzRCRy9Ehw",
+    "threadId": "J8Uk-zp9CE7KSwLWGf8MA",
+    "invocationId": "-MNyX5--6i9O6zB2Dh6gR",
+    "sessionId": "lZULjgSCFBxkH9OOO50Qq",
+    "eventType": "invocation.completed",
+    "visibility": "private",
+    "payload": {
+      "replyMessageId": "Tb94wdD6YG4D_7pZ_spQt"
+    },
+    "createdAt": "2026-03-07T00:14:20.058Z"
+  },
+  {
+    "id": "gjOyi9Ze8UFGwRiZbSpRC",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "LDd4W2n93JHzkCd5R8yd5",
+    "eventType": "invocation.created",
+    "visibility": "private",
+    "payload": {
+      "targetAgentId": "cat-maine",
+      "mention": "maine"
+    },
+    "createdAt": "2026-03-07T00:24:21.163Z"
+  },
+  {
+    "id": "vDW-hJCAjQcRRnpZg3dIk",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "LDd4W2n93JHzkCd5R8yd5",
+    "sessionId": "kHHEHb-KyfXhmmoXrTw7a",
+    "eventType": "session.created",
+    "visibility": "private",
+    "payload": {
+      "sessionId": "kHHEHb-KyfXhmmoXrTw7a",
+      "agentId": "cat-maine"
+    },
+    "createdAt": "2026-03-07T00:24:21.166Z"
+  },
+  {
+    "id": "B3UIaMJn5Rnrrf5bXykcl",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "LDd4W2n93JHzkCd5R8yd5",
+    "sessionId": "kHHEHb-KyfXhmmoXrTw7a",
+    "eventType": "invocation.started",
+    "visibility": "private",
+    "payload": {
+      "agentName": "Maine",
+      "model": "claude-sonnet-4-6"
+    },
+    "createdAt": "2026-03-07T00:24:21.175Z"
+  },
+  {
+    "id": "oB_tuBd6d5HWzTIlWSFqq",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "LDd4W2n93JHzkCd5R8yd5",
+    "sessionId": "kHHEHb-KyfXhmmoXrTw7a",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "[Maine] I received your tas"
+    },
+    "createdAt": "2026-03-07T00:24:21.177Z"
+  },
+  {
+    "id": "RVWGOkxc23NKxZ7bNZJZy",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "LDd4W2n93JHzkCd5R8yd5",
+    "sessionId": "kHHEHb-KyfXhmmoXrTw7a",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "k: \"hi\". This is a stub res"
+    },
+    "createdAt": "2026-03-07T00:24:21.179Z"
+  },
+  {
+    "id": "NT0swsHmIJtMAiXzg11ob",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "LDd4W2n93JHzkCd5R8yd5",
+    "sessionId": "kHHEHb-KyfXhmmoXrTw7a",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "ponse from the Maine cat."
+    },
+    "createdAt": "2026-03-07T00:24:21.181Z"
+  },
+  {
+    "id": "C0h5xiexckpl2s0U4e9zr",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "LDd4W2n93JHzkCd5R8yd5",
+    "sessionId": "kHHEHb-KyfXhmmoXrTw7a",
+    "eventType": "invocation.completed",
+    "visibility": "private",
+    "payload": {
+      "replyMessageId": "VbtTzNxNpZhX7qyDBmnAK"
+    },
+    "createdAt": "2026-03-07T00:24:21.184Z"
+  },
+  {
+    "id": "PERiPWSIrTlNu4ia034fH",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "NI1xARZCGsWIunAs8g1BF",
+    "eventType": "invocation.created",
+    "visibility": "private",
+    "payload": {
+      "targetAgentId": "cat-siamese",
+      "mention": "siamese"
+    },
+    "createdAt": "2026-03-07T00:24:41.970Z"
+  },
+  {
+    "id": "4T1ZWKpBiX20lUO2K1lm2",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "NI1xARZCGsWIunAs8g1BF",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "eventType": "session.created",
+    "visibility": "private",
+    "payload": {
+      "sessionId": "6C42yHAPym5E8LdXfLwcx",
+      "agentId": "cat-siamese"
+    },
+    "createdAt": "2026-03-07T00:24:41.972Z"
+  },
+  {
+    "id": "J4B6STyzLPJ1A65Z-_OY-",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "NI1xARZCGsWIunAs8g1BF",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "eventType": "invocation.started",
+    "visibility": "private",
+    "payload": {
+      "agentName": "Siamese",
+      "model": "claude-haiku-4-5-20251001"
+    },
+    "createdAt": "2026-03-07T00:24:41.975Z"
+  },
+  {
+    "id": "1ygfKS0ymLW_3JRaOyY7Q",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "NI1xARZCGsWIunAs8g1BF",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "[Siamese] I received your task"
+    },
+    "createdAt": "2026-03-07T00:24:41.977Z"
+  },
+  {
+    "id": "thj2L9nT5osuCi4W7xHVs",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "NI1xARZCGsWIunAs8g1BF",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": ": \"say hello\". This is a stub "
+    },
+    "createdAt": "2026-03-07T00:24:41.979Z"
+  },
+  {
+    "id": "wFkI9byN0akRk17KdKqEq",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "NI1xARZCGsWIunAs8g1BF",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "response from the Siamese cat."
+    },
+    "createdAt": "2026-03-07T00:24:41.982Z"
+  },
+  {
+    "id": "X_MdldIfeyTGVQSZ8TKAe",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "NI1xARZCGsWIunAs8g1BF",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "eventType": "invocation.completed",
+    "visibility": "private",
+    "payload": {
+      "replyMessageId": "Z_PqoGZU4df84zu1c9Loy"
+    },
+    "createdAt": "2026-03-07T00:24:41.988Z"
+  },
+  {
+    "id": "aGM905c8xkLN7DNRfmfkY",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "Y-ZSufHNabXIHmSlFvGia",
+    "eventType": "invocation.created",
+    "visibility": "private",
+    "payload": {
+      "targetAgentId": "cat-siamese",
+      "mention": "siamese"
+    },
+    "createdAt": "2026-03-07T00:24:57.989Z"
+  },
+  {
+    "id": "3fGC6jmeQxfvBd9NZyNY3",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "Y-ZSufHNabXIHmSlFvGia",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "eventType": "session.selected",
+    "visibility": "private",
+    "payload": {
+      "sessionId": "6C42yHAPym5E8LdXfLwcx"
+    },
+    "createdAt": "2026-03-07T00:24:57.990Z"
+  },
+  {
+    "id": "VEWoD-gopiw2mlnXlTJvI",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "Y-ZSufHNabXIHmSlFvGia",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "eventType": "invocation.started",
+    "visibility": "private",
+    "payload": {
+      "agentName": "Siamese",
+      "model": "claude-haiku-4-5-20251001"
+    },
+    "createdAt": "2026-03-07T00:24:57.993Z"
+  },
+  {
+    "id": "-EqM8FF9RZ75zfVt2vxRo",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "Y-ZSufHNabXIHmSlFvGia",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "[Siamese] I received your task"
+    },
+    "createdAt": "2026-03-07T00:24:57.994Z"
+  },
+  {
+    "id": "ojIsK27voiW17gRw6qUED",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "Y-ZSufHNabXIHmSlFvGia",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": ": \"介绍一下你自己\". This is a stub re"
+    },
+    "createdAt": "2026-03-07T00:24:57.995Z"
+  },
+  {
+    "id": "UOWRuHb6PDcoxutaNFwJ8",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "Y-ZSufHNabXIHmSlFvGia",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "eventType": "invocation.text.delta",
+    "visibility": "private",
+    "payload": {
+      "chunk": "sponse from the Siamese cat."
+    },
+    "createdAt": "2026-03-07T00:24:57.997Z"
+  },
+  {
+    "id": "siwJtihYhUE0JXrRMlime",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "invocationId": "Y-ZSufHNabXIHmSlFvGia",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "eventType": "invocation.completed",
+    "visibility": "private",
+    "payload": {
+      "replyMessageId": "dHC3FEqcfP2akyxbH5eyp"
+    },
+    "createdAt": "2026-03-07T00:24:58.001Z"
+  }
+]

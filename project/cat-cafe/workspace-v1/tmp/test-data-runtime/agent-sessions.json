@@ -1,0 +1,34 @@
+[
+  {
+    "id": "-aHRgHZsDsREMvMcAh6v0",
+    "threadId": "OpQO93tL4HkCGHZOM1mBN",
+    "agentId": "cat-maine",
+    "status": "active",
+    "createdAt": "2026-03-07T00:03:22.446Z",
+    "lastActiveAt": "2026-03-07T00:03:22.461Z"
+  },
+  {
+    "id": "i-eLW_0TsWxejZv3u5B-8",
+    "threadId": "OpQO93tL4HkCGHZOM1mBN",
+    "agentId": "cat-siamese",
+    "status": "active",
+    "createdAt": "2026-03-07T00:03:22.482Z",
+    "lastActiveAt": "2026-03-07T00:03:22.482Z"
+  },
+  {
+    "id": "5gSGBjBJZYm7KLFISrYL_",
+    "threadId": "P65NJa_uko3g4_wLGTlf7",
+    "agentId": "cat-maine",
+    "status": "active",
+    "createdAt": "2026-03-07T00:10:26.220Z",
+    "lastActiveAt": "2026-03-07T00:10:26.236Z"
+  },
+  {
+    "id": "6rx_DWTzvksCOHX-x978V",
+    "threadId": "P65NJa_uko3g4_wLGTlf7",
+    "agentId": "cat-siamese",
+    "status": "active",
+    "createdAt": "2026-03-07T00:10:26.250Z",
+    "lastActiveAt": "2026-03-07T00:10:26.250Z"
+  }
+]

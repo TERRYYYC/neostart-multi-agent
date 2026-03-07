@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>cat-cafe v1</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; height: 100vh; overflow: hidden; background: #f5f5f5; color: #333; }
+  #root { height: 100vh; }
+
+  .app { display: flex; height: 100vh; }
+
+  /* Left panel — Thread List */
+  .thread-list { width: 240px; background: #1a1a2e; color: #eee; display: flex; flex-direction: column; flex-shrink: 0; }
+  .thread-list-header { padding: 16px; font-size: 14px; font-weight: 600; color: #aaa; border-bottom: 1px solid #2a2a4a; display: flex; justify-content: space-between; align-items: center; }
+  .thread-list-header span { font-size: 12px; opacity: 0.5; }
+  .btn-new-thread { background: #4a4a8a; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .btn-new-thread:hover { background: #5a5a9a; }
+  .thread-items { flex: 1; overflow-y: auto; padding: 8px; }
+  .thread-item { padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .thread-item:hover { background: #2a2a4a; }
+  .thread-item.active { background: #3a3a6a; }
+
+  /* Center — Message Stream */
+  .message-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .message-stream { flex: 1; overflow-y: auto; padding: 20px; }
+  .message-empty { color: #999; text-align: center; margin-top: 80px; font-size: 14px; }
+  .message { margin-bottom: 12px; max-width: 80%; }
+  .message.user { margin-left: auto; }
+  .message.assistant { margin-right: auto; }
+  .message-bubble { padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
+  .message.user .message-bubble { background: #4a4aaa; color: #fff; border-bottom-right-radius: 4px; }
+  .message.assistant .message-bubble { background: #fff; color: #333; border: 1px solid #ddd; border-bottom-left-radius: 4px; }
+  .message.system .message-bubble { background: #fff3cd; color: #856404; font-size: 12px; border-radius: 6px; text-align: center; max-width: 100%; }
+  .message-meta { font-size: 11px; color: #999; margin-top: 2px; padding: 0 4px; }
+  .message.user .message-meta { text-align: right; }
+  .streaming-indicator { color: #4a4aaa; font-style: italic; font-size: 13px; padding: 4px 14px; }
+
+  /* Input */
+  .message-input-area { padding: 12px 20px; border-top: 1px solid #e0e0e0; background: #fff; }
+  .message-input-form { display: flex; gap: 8px; }
+  .message-input-form input { flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+  .message-input-form input:focus { border-color: #4a4aaa; }
+  .message-input-form button { padding: 10px 20px; background: #4a4aaa; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+  .message-input-form button:hover { background: #5a5aba; }
+  .message-input-form button:disabled { background: #ccc; cursor: not-allowed; }
+
+  /* Right panel — Runtime Status */
+  .runtime-panel { width: 260px; background: #fff; border-left: 1px solid #e0e0e0; flex-shrink: 0; display: flex; flex-direction: column; }
+  .runtime-header { padding: 16px; font-size: 14px; font-weight: 600; color: #666; border-bottom: 1px solid #e0e0e0; }
+  .runtime-content { padding: 16px; font-size: 13px; flex: 1; overflow-y: auto; }
+  .runtime-field { margin-bottom: 12px; }
+  .runtime-label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .runtime-value { font-size: 13px; color: #333; }
+  .runtime-empty { color: #ccc; font-style: italic; margin-top: 20px; }
+  .state-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .state-badge.queued { background: #e0e0e0; color: #666; }
+  .state-badge.running { background: #cce5ff; color: #004085; }
+  .state-badge.completed { background: #d4edda; color: #155724; }
+  .state-badge.failed { background: #f8d7da; color: #721c24; }
+
+  /* No thread selected */
+  .no-thread { display: flex; align-items: center; justify-content: center; flex: 1; color: #ccc; font-size: 15px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+
+<script>
+const { useState, useEffect, useRef, useCallback } = React;
+const API = '/api';
+
+// ---------------------------------------------------------------------------
+// API helpers
+// ---------------------------------------------------------------------------
+async function api(path, opts) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opts,
+  });
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// ThreadList
+// ---------------------------------------------------------------------------
+function ThreadList({ currentId, onSelect, refreshKey }) {
+  const [threads, setThreads] = useState([]);
+
+  useEffect(() => {
+    api('/threads').then(setThreads);
+  }, [refreshKey]);
+
+  async function createThread() {
+    const t = await api('/threads', {
+      method: 'POST',
+      body: JSON.stringify({ title: 'New Thread' }),
+    });
+    setThreads(prev => [t, ...prev]);
+    onSelect(t.id);
+  }
+
+  return React.createElement('div', { className: 'thread-list' },
+    React.createElement('div', { className: 'thread-list-header' },
+      React.createElement('span', null, 'THREADS'),
+      React.createElement('button', { className: 'btn-new-thread', onClick: createThread }, '+ New'),
+    ),
+    React.createElement('div', { className: 'thread-items' },
+      threads.map(t =>
+        React.createElement('div', {
+          key: t.id,
+          className: 'thread-item' + (t.id === currentId ? ' active' : ''),
+          onClick: () => onSelect(t.id),
+        }, t.title)
+      )
+    )
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MessageStream
+// ---------------------------------------------------------------------------
+function MessageStream({ threadId }) {
+  const [messages, setMessages] = useState([]);
+  const [streaming, setStreaming] = useState('');
+  const [streamingAgent, setStreamingAgent] = useState('');
+  const scrollRef = useRef(null);
+
+  // Load messages from backend
+  const loadMessages = useCallback(() => {
+    if (!threadId) return;
+    api('/threads/' + threadId + '/messages').then(setMessages);
+  }, [threadId]);
+
+  useEffect(() => {
+    setMessages([]);
+    setStreaming('');
+    loadMessages();
+  }, [threadId, loadMessages]);
+
+  // SSE subscription
+  useEffect(() => {
+    if (!threadId) return;
+    const es = new EventSource(API + '/threads/' + threadId + '/stream');
+    let buf = '';
+
+    es.addEventListener('invocation.started', (e) => {
+      const d = JSON.parse(e.data);
+      setStreamingAgent(d.agentName || 'Agent');
+      buf = '';
+      setStreaming('');
+    });
+
+    es.addEventListener('text.delta', (e) => {
+      const d = JSON.parse(e.data);
+      buf += d.chunk;
+      setStreaming(buf);
+    });
+
+    es.addEventListener('invocation.completed', () => {
+      setStreaming('');
+      setStreamingAgent('');
+      buf = '';
+      // Refresh messages to get the final persisted reply.
+      loadMessages();
+    });
+
+    es.addEventListener('invocation.failed', () => {
+      setStreaming('');
+      setStreamingAgent('');
+      buf = '';
+      loadMessages();
+    });
+
+    return () => es.close();
+  }, [threadId, loadMessages]);
+
+  // Auto-scroll
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, streaming]);
+
+  if (!threadId) {
+    return React.createElement('div', { className: 'no-thread' }, 'Select or create a thread to begin');
+  }
+
+  return React.createElement('div', { className: 'message-stream', ref: scrollRef },
+    messages.length === 0 && !streaming
+      ? React.createElement('div', { className: 'message-empty' }, 'No messages yet. Send a message with @cat to get started.')
+      : null,
+    messages.map(m =>
+      React.createElement('div', { key: m.id, className: 'message ' + m.role },
+        React.createElement('div', { className: 'message-bubble' }, m.content),
+        React.createElement('div', { className: 'message-meta' },
+          m.role === 'assistant' ? m.authorId.replace('cat-', '') : 'you'
+        ),
+      )
+    ),
+    streaming
+      ? React.createElement('div', { className: 'message assistant' },
+          React.createElement('div', { className: 'message-bubble' }, streaming),
+          React.createElement('div', { className: 'streaming-indicator' }, streamingAgent + ' is typing...'),
+        )
+      : null,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MessageInput
+// ---------------------------------------------------------------------------
+function MessageInput({ threadId, onSent }) {
+  const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!text.trim() || !threadId || sending) return;
+    setSending(true);
+    try {
+      await api('/threads/' + threadId + '/messages', {
+        method: 'POST',
+        body: JSON.stringify({ content: text }),
+      });
+      setText('');
+      if (onSent) onSent();
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return React.createElement('div', { className: 'message-input-area' },
+    React.createElement('form', { className: 'message-input-form', onSubmit: handleSubmit },
+      React.createElement('input', {
+        type: 'text',
+        value: text,
+        onChange: e => setText(e.target.value),
+        placeholder: '@maine tell me about this project...',
+        disabled: !threadId || sending,
+      }),
+      React.createElement('button', {
+        type: 'submit',
+        disabled: !threadId || !text.trim() || sending,
+      }, sending ? '...' : 'Send'),
+    ),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// RuntimePanel
+// ---------------------------------------------------------------------------
+function RuntimePanel({ threadId }) {
+  const [inv, setInv] = useState(null);
+
+  // Poll runtime status when thread changes
+  const loadRuntime = useCallback(() => {
+    if (!threadId) return;
+    api('/threads/' + threadId + '/runtime').then(r => setInv(r.current));
+  }, [threadId]);
+
+  useEffect(() => {
+    setInv(null);
+    loadRuntime();
+  }, [threadId, loadRuntime]);
+
+  // SSE updates for runtime panel
+  useEffect(() => {
+    if (!threadId) return;
+    const es = new EventSource(API + '/threads/' + threadId + '/stream');
+
+    es.addEventListener('invocation.created', (e) => {
+      const d = JSON.parse(e.data);
+      setInv(prev => ({
+        ...prev,
+        id: d.invocationId,
+        targetAgentId: d.targetAgentId,
+        state: 'queued',
+      }));
+    });
+
+    es.addEventListener('invocation.started', (e) => {
+      const d = JSON.parse(e.data);
+      setInv(prev => ({
+        ...prev,
+        id: d.invocationId,
+        state: 'running',
+        _agentName: d.agentName,
+      }));
+    });
+
+    es.addEventListener('invocation.completed', (e) => {
+      const d = JSON.parse(e.data);
+      setInv(prev => ({ ...prev, state: 'completed' }));
+      // Reload full data after a beat
+      setTimeout(loadRuntime, 200);
+    });
+
+    es.addEventListener('invocation.failed', () => {
+      setInv(prev => ({ ...prev, state: 'failed' }));
+      setTimeout(loadRuntime, 200);
+    });
+
+    return () => es.close();
+  }, [threadId, loadRuntime]);
+
+  return React.createElement('div', { className: 'runtime-panel' },
+    React.createElement('div', { className: 'runtime-header' }, 'Runtime Status'),
+    React.createElement('div', { className: 'runtime-content' },
+      !threadId
+        ? React.createElement('div', { className: 'runtime-empty' }, 'No thread selected')
+        : !inv
+        ? React.createElement('div', { className: 'runtime-empty' }, 'No invocations yet')
+        : React.createElement(React.Fragment, null,
+            React.createElement('div', { className: 'runtime-field' },
+              React.createElement('div', { className: 'runtime-label' }, 'State'),
+              React.createElement('div', { className: 'runtime-value' },
+                React.createElement('span', { className: 'state-badge ' + (inv.state || '') }, inv.state || '—')
+              ),
+            ),
+            React.createElement('div', { className: 'runtime-field' },
+              React.createElement('div', { className: 'runtime-label' }, 'Agent'),
+              React.createElement('div', { className: 'runtime-value' },
+                inv._agentName || (inv.targetAgentId || '').replace('cat-', '') || '—'
+              ),
+            ),
+            React.createElement('div', { className: 'runtime-field' },
+              React.createElement('div', { className: 'runtime-label' }, 'Invocation ID'),
+              React.createElement('div', { className: 'runtime-value' },
+                inv.id ? inv.id.substring(0, 12) + '...' : '—'
+              ),
+            ),
+            inv.startedAt ? React.createElement('div', { className: 'runtime-field' },
+              React.createElement('div', { className: 'runtime-label' }, 'Started'),
+              React.createElement('div', { className: 'runtime-value' },
+                new Date(inv.startedAt).toLocaleTimeString()
+              ),
+            ) : null,
+            inv.finishedAt ? React.createElement('div', { className: 'runtime-field' },
+              React.createElement('div', { className: 'runtime-label' }, 'Duration'),
+              React.createElement('div', { className: 'runtime-value' },
+                (new Date(inv.finishedAt) - new Date(inv.startedAt)) + 'ms'
+              ),
+            ) : null,
+          ),
+    ),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// App
+// ---------------------------------------------------------------------------
+function App() {
+  const [threadId, setThreadId] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  function handleSent() {
+    // Messages arrive via SSE; also refresh thread list title
+    setRefreshKey(k => k + 1);
+  }
+
+  return React.createElement('div', { className: 'app' },
+    React.createElement(ThreadList, { currentId: threadId, onSelect: setThreadId, refreshKey }),
+    React.createElement('div', { className: 'message-area' },
+      React.createElement(MessageStream, { threadId }),
+      React.createElement(MessageInput, { threadId, onSent: handleSent }),
+    ),
+    React.createElement(RuntimePanel, { threadId }),
+  );
+}
+
+// Mount
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>

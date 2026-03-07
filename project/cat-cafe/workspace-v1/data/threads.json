@@ -1,0 +1,30 @@
+[
+  {
+    "id": "Xlw_WIc5vkXqhz4RCG-X3",
+    "title": "Test Thread",
+    "createdAt": "2026-03-07T00:10:03.522Z",
+    "updatedAt": "2026-03-07T00:24:09.338Z",
+    "status": "active"
+  },
+  {
+    "id": "-nTo2PPgRlC7OlvPOEoN6",
+    "title": "SSE Test",
+    "createdAt": "2026-03-07T00:10:13.614Z",
+    "updatedAt": "2026-03-07T00:10:14.158Z",
+    "status": "active"
+  },
+  {
+    "id": "J8Uk-zp9CE7KSwLWGf8MA",
+    "title": "Test",
+    "createdAt": "2026-03-07T00:14:20.013Z",
+    "updatedAt": "2026-03-07T00:14:20.043Z",
+    "status": "active"
+  },
+  {
+    "id": "1XGNgiU343voezDYF2G1l",
+    "title": "New Thread",
+    "createdAt": "2026-03-07T00:23:44.270Z",
+    "updatedAt": "2026-03-07T00:24:57.987Z",
+    "status": "active"
+  }
+]

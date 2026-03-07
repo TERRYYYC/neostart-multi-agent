@@ -1,0 +1,68 @@
+[
+  {
+    "id": "dxsce0lwl12uC5xO0QeiM",
+    "threadId": "Xlw_WIc5vkXqhz4RCG-X3",
+    "sourceMessageId": "ZSYHVOg1wvWv7ob4YLtxl",
+    "targetAgentId": "cat-maine",
+    "sessionId": "QpfNVYf9FkRynjv4ihrlA",
+    "state": "completed",
+    "visibility": "private",
+    "startedAt": "2026-03-07T00:10:03.741Z",
+    "finishedAt": "2026-03-07T00:10:03.874Z"
+  },
+  {
+    "id": "RMiScMEmAWkRXzhzdGfwi",
+    "threadId": "-nTo2PPgRlC7OlvPOEoN6",
+    "sourceMessageId": "rmwk9ZtwglWpf9KtPO3gp",
+    "targetAgentId": "cat-siamese",
+    "sessionId": "XtIjtVm1pUlei7xK93hbt",
+    "state": "completed",
+    "visibility": "private",
+    "startedAt": "2026-03-07T00:10:14.161Z",
+    "finishedAt": "2026-03-07T00:10:14.183Z"
+  },
+  {
+    "id": "-MNyX5--6i9O6zB2Dh6gR",
+    "threadId": "J8Uk-zp9CE7KSwLWGf8MA",
+    "sourceMessageId": "nOfRLUP9xW-mOeYOxTGUB",
+    "targetAgentId": "cat-maine",
+    "sessionId": "lZULjgSCFBxkH9OOO50Qq",
+    "state": "completed",
+    "visibility": "private",
+    "startedAt": "2026-03-07T00:14:20.045Z",
+    "finishedAt": "2026-03-07T00:14:20.057Z"
+  },
+  {
+    "id": "LDd4W2n93JHzkCd5R8yd5",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "sourceMessageId": "qWCaOd8h0TBOMtdJgZwJH",
+    "targetAgentId": "cat-maine",
+    "sessionId": "kHHEHb-KyfXhmmoXrTw7a",
+    "state": "completed",
+    "visibility": "private",
+    "startedAt": "2026-03-07T00:24:21.162Z",
+    "finishedAt": "2026-03-07T00:24:21.184Z"
+  },
+  {
+    "id": "NI1xARZCGsWIunAs8g1BF",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "sourceMessageId": "ZgSs5X2Omjj1DQsvLpE27",
+    "targetAgentId": "cat-siamese",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "state": "completed",
+    "visibility": "private",
+    "startedAt": "2026-03-07T00:24:41.969Z",
+    "finishedAt": "2026-03-07T00:24:41.987Z"
+  },
+  {
+    "id": "Y-ZSufHNabXIHmSlFvGia",
+    "threadId": "1XGNgiU343voezDYF2G1l",
+    "sourceMessageId": "5GmknM87d8yVkV0JiTq67",
+    "targetAgentId": "cat-siamese",
+    "sessionId": "6C42yHAPym5E8LdXfLwcx",
+    "state": "completed",
+    "visibility": "private",
+    "startedAt": "2026-03-07T00:24:57.988Z",
+    "finishedAt": "2026-03-07T00:24:58.000Z"
+  }
+]

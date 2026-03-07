@@ -1,0 +1,23 @@
+{
+  "name": "cat-cafe-v1",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Single-user multi-agent collaboration workspace",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "nanoid": "^5.0.9"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.13.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.0"
+  }
+}

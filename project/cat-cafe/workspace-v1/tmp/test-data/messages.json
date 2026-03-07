@@ -1,0 +1,15 @@
+[
+  {
+    "id": "msg-001",
+    "threadId": "thread-001",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-1",
+    "visibility": "public",
+    "content": "Hello @maine",
+    "mentions": [
+      "maine"
+    ],
+    "createdAt": "2026-03-06T23:56:42.925Z"
+  }
+]

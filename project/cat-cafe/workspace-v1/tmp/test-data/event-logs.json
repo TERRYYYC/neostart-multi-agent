@@ -1,0 +1,13 @@
+[
+  {
+    "id": "evt-001",
+    "threadId": "thread-001",
+    "invocationId": "inv-001",
+    "eventType": "invocation.created",
+    "visibility": "private",
+    "payload": {
+      "detail": "test"
+    },
+    "createdAt": "2026-03-06T23:56:42.927Z"
+  }
+]
