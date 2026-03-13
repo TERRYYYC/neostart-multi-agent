@@ -38,5 +38,113 @@
     "status": "active",
     "createdAt": "2026-03-07T00:24:41.971Z",
     "lastActiveAt": "2026-03-07T00:24:57.989Z"
+  },
+  {
+    "id": "WqGwAnwQ8ec-mUlH3K_iS",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "agentId": "cat-maine",
+    "status": "active",
+    "createdAt": "2026-03-09T20:13:45.773Z",
+    "lastActiveAt": "2026-03-09T20:17:01.898Z"
+  },
+  {
+    "id": "LSszx39qtOEJhY6J9CD9e",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "agentId": "cat-siamese",
+    "status": "active",
+    "createdAt": "2026-03-09T20:14:53.735Z",
+    "lastActiveAt": "2026-03-09T20:15:43.806Z"
+  },
+  {
+    "id": "JWqVaEBtsU7f6_C1CfCJC",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "agentId": "cat-persian",
+    "status": "active",
+    "createdAt": "2026-03-09T20:16:28.998Z",
+    "lastActiveAt": "2026-03-09T20:16:28.998Z"
+  },
+  {
+    "id": "-ceGgN23JPQPYrnw-j_oL",
+    "threadId": "c1HffpZ-_AAI5EZUXFS8F",
+    "agentId": "cat-maine",
+    "status": "active",
+    "createdAt": "2026-03-09T21:13:15.714Z",
+    "lastActiveAt": "2026-03-09T21:13:15.714Z"
+  },
+  {
+    "id": "lQ0ejE0SvGKN5MjJNXdgZ",
+    "threadId": "pOO_TFOdtMOn8XqKLheNF",
+    "agentId": "cat-birman",
+    "status": "active",
+    "createdAt": "2026-03-09T21:32:39.324Z",
+    "lastActiveAt": "2026-03-09T21:32:39.324Z"
+  },
+  {
+    "id": "cnYPsVABndYCrOpuqucfD",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "agentId": "cat-maine-opus",
+    "status": "active",
+    "createdAt": "2026-03-09T21:52:32.801Z",
+    "lastActiveAt": "2026-03-09T21:52:32.801Z"
+  },
+  {
+    "id": "iCjNEMK1Y1SUlmlSrKCij",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "agentId": "cat-birman",
+    "status": "active",
+    "createdAt": "2026-03-09T21:53:01.288Z",
+    "lastActiveAt": "2026-03-09T22:06:36.572Z"
+  },
+  {
+    "id": "1pFxxqva05q0fJVocZcLW",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "agentId": "cat-ragdoll",
+    "status": "active",
+    "createdAt": "2026-03-09T21:53:22.936Z",
+    "lastActiveAt": "2026-03-09T21:53:51.059Z"
+  },
+  {
+    "id": "cgFHKTmc1Wxqy9urmuaWp",
+    "threadId": "IsNUbHCaBOxBQ_UQHlfV9",
+    "agentId": "cat-birman",
+    "status": "active",
+    "createdAt": "2026-03-09T22:07:10.976Z",
+    "lastActiveAt": "2026-03-09T22:07:10.976Z"
+  },
+  {
+    "id": "y1O1hNbYR5kJSDYLIMQEY",
+    "threadId": "NjxhwosgtbkkdkCdxrTGx",
+    "agentId": "cat-birman",
+    "status": "active",
+    "createdAt": "2026-03-09T22:07:34.013Z",
+    "lastActiveAt": "2026-03-09T22:10:55.882Z"
+  },
+  {
+    "id": "S2OG4ekJH_I9cw4-qq1jn",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "agentId": "cat-maine-opus",
+    "status": "sealed",
+    "createdAt": "2026-03-09T22:37:53.530Z",
+    "lastActiveAt": "2026-03-09T22:37:56.601Z",
+    "sealedAt": "2026-03-09T22:37:56.610Z",
+    "contextSummary": "[Session topic]: @maine message number 2\n[Recent conversation]:\n[user]: @maine message number 2\n[assistant]: [Maine] I received your task: \"message number 2\". This is a stub response from the Maine cat.\n[user]: @maine message number 3\n[assistant]: [Maine] I received your task: \"message number 3\". This is a stub response from the Maine cat.\n[user]: @maine message number 4\n[Total messages in session]: 6"
+  },
+  {
+    "id": "wORAmuefSWxP6_EjHMkhs",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "agentId": "cat-maine-opus",
+    "status": "active",
+    "createdAt": "2026-03-09T22:37:56.610Z",
+    "lastActiveAt": "2026-03-09T22:56:42.765Z",
+    "predecessorSessionId": "S2OG4ekJH_I9cw4-qq1jn",
+    "handoffId": "u6Hunf5VlSURMOUDOLo2_"
+  },
+  {
+    "id": "xqPQ25vhnvSBNosNYmsDl",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "agentId": "cat-persian",
+    "status": "active",
+    "createdAt": "2026-03-09T22:43:16.221Z",
+    "lastActiveAt": "2026-03-09T22:43:49.264Z"
   }
 ]

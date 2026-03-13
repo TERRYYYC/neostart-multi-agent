@@ -1,5 +1,4 @@
-# AGENTS.md
-
+# AGENTS
 > Purpose: Give any AI agent a clear, execution-oriented brief for rebuilding a closed-source product by learning from screenshots and observed behavior, without jumping into UI coding too early.
 > 目的：给任何 AI agent 一份可执行的项目说明，用于基于截图和使用观察来复刻闭源产品能力，但在方向未明确前不直接进入 UI 编码。
 

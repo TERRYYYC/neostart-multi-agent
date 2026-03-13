@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "project/cat-cafe/workspace-v1/docs/implementation-checklist.md",
+                "file": "project/cat-cafe/AGENTS.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "implementation-checklist"
+              "title": "AGENTS"
             }
           }
         ],
@@ -109,7 +109,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "project/cat-cafe/workspace-v1/docs/implementation-checklist.md",
+                "file": "project/cat-cafe/AGENTS.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -119,7 +119,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "implementation-checklist 的反向链接列表"
+              "title": "AGENTS 的反向链接列表"
             }
           },
           {
@@ -128,12 +128,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "project/cat-cafe/workspace-v1/docs/implementation-checklist.md",
+                "file": "project/cat-cafe/AGENTS.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "implementation-checklist 的出链列表"
+              "title": "AGENTS 的出链列表"
             }
           },
           {
@@ -171,13 +171,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "project/cat-cafe/workspace-v1/docs/implementation-checklist.md",
+                "file": "project/cat-cafe/AGENTS.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "implementation-checklist 的大纲"
+              "title": "AGENTS 的大纲"
             }
           }
         ]
@@ -198,44 +198,44 @@
       "bases:新建数据库": false
     }
   },
-  "active": "7da4fd35a9ed129f",
+  "active": "256af7ae0a4af5f4",
   "lastOpenFiles": [
+    "project/cat-cafe/Cat-Cafe-项目复盘报告.md",
+    "project/cat-cafe/workspace-v1/docs/source-map.md.tmp.17960.1773178279162",
+    "project/cat-cafe/workspace-v1/src/server/runtime/memory-loader.ts",
+    "project/cat-cafe/workspace-v1/src/server/api/memories.ts",
+    "project/cat-cafe/workspace-v1/data/event-logs.json.tmp",
+    "project/cat-cafe/workspace-v1/data/workspace-bindings.json",
+    "project/cat-cafe/workspace-v1/data/session-handoffs.json",
+    "project/cat-cafe/workspace-v1/src/server/runtime/session-chain.ts",
+    "project/cat-cafe/workspace-v1/src/server/runtime/provider-router.ts",
+    "project/cat-cafe/workspace-v1/src/server/runtime/gemini-runner.ts",
+    "project/cat-cafe/workspace-v1/src/server/runtime/openai-runner.ts",
+    "project/cat-cafe/workspace-v1/node_modules/openai/src/resources/webhooks/api.md",
+    "project/cat-cafe/workspace-v1/node_modules/openai/src/resources/responses/api.md",
+    "project/cat-cafe/workspace-v1/node_modules/openai/src/resources/realtime/api.md",
+    "project/cat-cafe/workspace-v1/node_modules/openai/src/resources/conversations/api.md",
+    "project/cat-cafe/workspace-v1/node_modules/openai/src/internal/qs/README.md",
+    "project/cat-cafe/workspace-v1/node_modules/openai/src/internal/qs/LICENSE.md",
+    "project/cat-cafe/workspace-v1/node_modules/openai/src/_vendor/zod-to-json-schema/README.md",
+    "project/cat-cafe/workspace-v1/node_modules/openai/src/_vendor/partial-json-parser/README.md",
+    "project/cat-cafe/workspace-v1/node_modules/openai/src/internal/README.md",
+    "project/cat-cafe/workspace-v1/node_modules/openai/src/core/README.md",
+    "project/cat-cafe/workspace-v1/node_modules/@google/generative-ai/README.md",
+    "project/cat-cafe/workspace-v1/node_modules/openai/README.md",
+    "project/cat-cafe/workspace-v1/node_modules/openai/CHANGELOG.md",
+    "project/cat-cafe/workspace-v1/node_modules/@esbuild/linux-arm64/README.md",
+    "homework2.md",
+    "git-readme.md",
+    "prompt.md",
+    "README.md",
+    "project/cat-cafe/workspace-v1/docs/implementation-checklist.md",
     "project/cat-cafe/workspace-v1/docs/phase-1-task-breakdown.md",
     "project/cat-cafe/workspace-v1/docs/post-phase-sync-prompt.md",
     "project/cat-cafe/workspace-v1/docs/source-map.md",
     "project/cat-cafe/workspace-v1/docs/status.md",
     "project/cat-cafe/workspace-v1/docs/cat-cafe-v1-architecture.md",
     "project/cat-cafe/AGENTS.md",
-    "project/cat-cafe/workspace-v1/README.md",
-    "project/cat-cafe/workspace-v1/AGENTS.md",
-    "project/cat-cafe/workspace-v1/data/event-logs.json.tmp",
-    "project/cat-cafe/workspace-v1/data/invocations.json.tmp",
-    "project/cat-cafe/workspace-v1/node_modules/@esbuild/darwin-arm64/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/@esbuild/darwin-arm64/package.json",
-    "project/cat-cafe/workspace-v1/node_modules/fsevents/fsevents.node",
-    "project/cat-cafe/workspace-v1/node_modules/fsevents/fsevents.d.ts",
-    "project/cat-cafe/workspace-v1/node_modules/fsevents/package.json",
-    "project/cat-cafe/workspace-v1/node_modules/fsevents/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/fsevents/fsevents.js",
-    "project/cat-cafe/workspace-v1/node_modules/fsevents/LICENSE",
-    "project/cat-cafe/workspace-v1/node_modules/@esbuild/darwin-arm64/bin/esbuild",
-    "project/cat-cafe/workspace-v1/node_modules/@esbuild/darwin-arm64/bin",
-    "prompt.md",
-    "project/cat-cafe/workspace-v1/node_modules/@types/connect/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/@types/serve-static/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/@types/range-parser/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/@types/send/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/@types/body-parser/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/@types/cors/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/@types/express/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/@types/express-serve-static-core/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/@types/http-errors/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/@types/qs/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/iconv-lite/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/qs/README.md",
-    "project/cat-cafe/workspace-v1/node_modules/qs/LICENSE.md",
-    "project/cat-cafe/workspace-v1/node_modules/qs/CHANGELOG.md",
-    "project/cat-cafe/workspace-v1/node_modules/object-inspect/CHANGELOG.md",
     "project/cat-cafe/DEMO/08-02 thread-审计日志.png",
     "project/cat-cafe/DEMO/08-01当前调用.png",
     "project/cat-cafe/DEMO/05.png",

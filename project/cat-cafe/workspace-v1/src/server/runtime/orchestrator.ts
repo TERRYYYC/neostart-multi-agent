@@ -22,6 +22,9 @@ import { emitEvent } from './event-emitter.js';
 import { findOrCreateSession } from './session-manager.js';
 import { stubRunner } from './runner.js';
 import type { Runner } from './runner.js';
+import { routeToRunner } from './provider-router.js';
+import { shouldSealSession, executeHandoff } from './session-chain.js';
+import { parseMemoryMarkers, stripMemoryMarkers, createMemoriesFromExtraction } from './memory-loader.js';
 
 // ---------------------------------------------------------------------------
 // Types / 类型
@@ -62,7 +65,6 @@ export async function executeInvocation(
   params: ExecuteParams,
 ): Promise<InvocationResult> {
   const { threadId, sourceMessageId, mention, taskText } = params;
-  const runner = params.runner ?? stubRunner;
   const now = () => new Date().toISOString();
 
   // ------------------------------------------------------------------
@@ -73,6 +75,10 @@ export async function executeInvocation(
     return { ok: false, reason: resolution.reason };
   }
   const profile = resolution.profile;
+
+  // Phase 3: route to correct runner based on provider; stub override still works.
+  // Phase 3：根据 provider 路由到正确的执行器；stub 覆盖仍然有效。
+  const runner = params.runner ?? (process.env.CLI_RUNNER === 'stub' ? stubRunner : routeToRunner(profile));
 
   // ------------------------------------------------------------------
   // Step 4: Create invocation (queued) / 创建调用（排队）
@@ -103,10 +109,31 @@ export async function executeInvocation(
   // ------------------------------------------------------------------
   // Step 3: Find or create session / 查找或创建会话
   // ------------------------------------------------------------------
-  const session = await findOrCreateSession(threadId, profile.id, invocationId);
+  let session = await findOrCreateSession(threadId, profile.id, invocationId);
 
   // Bind session to invocation. / 将会话绑定到调用。
   await invocationStore.update(invocationId, { sessionId: session.id });
+
+  // ------------------------------------------------------------------
+  // Step 3.5: Session handoff check / 会话交接检查
+  // If the current session exceeds thresholds, seal it and create
+  // a new continuation session before running the invocation.
+  // 如果当前 session 超过阈值，封存并创建新延续 session。
+  // ------------------------------------------------------------------
+  const sealCheck = await shouldSealSession(threadId, profile.id, session);
+  if (sealCheck.seal) {
+    const { newSession } = await executeHandoff(
+      threadId,
+      profile.id,
+      session,
+      invocationId,
+      profile,
+      sealCheck.reason,
+    );
+    session = newSession;
+    // Re-bind invocation to the new session. / 将调用重新绑定到新 session。
+    await invocationStore.update(invocationId, { sessionId: session.id });
+  }
 
   // ------------------------------------------------------------------
   // Step 5: Run (transition to running) / 运行（转为运行中）
@@ -128,6 +155,7 @@ export async function executeInvocation(
     threadId,
     profile,
     taskText,
+    sessionId: session.id,
     onTextDelta: async (chunk: string) => {
       textChunks.push(chunk);
       await emitEvent({
@@ -147,6 +175,33 @@ export async function executeInvocation(
 
   if (result.ok && result.text) {
     // Success path / 成功路径
+
+    // Phase 4: Extract memories from agent output and strip markers.
+    // Phase 4：从 agent 输出中提取记忆并去除标记。
+    const extractedMarkers = parseMemoryMarkers(result.text);
+    const cleanText = extractedMarkers.length > 0
+      ? stripMemoryMarkers(result.text)
+      : result.text;
+
+    if (extractedMarkers.length > 0) {
+      const created = await createMemoriesFromExtraction(extractedMarkers);
+      console.log(
+        `[orchestrator] Auto-extracted ${created.length} memories from agent output ` +
+        `(keys: ${created.map((m) => m.key).join(', ')})`,
+      );
+      // Emit memory.extracted event for each created memory.
+      // 为每个创建的记忆发射 memory.extracted 事件。
+      for (const mem of created) {
+        await emitEvent({
+          threadId,
+          invocationId,
+          sessionId: session.id,
+          eventType: 'memory.extracted',
+          payload: { memoryId: mem.id, key: mem.key, value: mem.value, category: mem.category },
+        });
+      }
+    }
+
     const replyMessage: Message = {
       id: generateId(),
       threadId,
@@ -154,7 +209,7 @@ export async function executeInvocation(
       authorType: 'agent',
       authorId: profile.id,
       visibility: 'public',
-      content: result.text,
+      content: cleanText,
       mentions: [],
       sourceInvocationId: invocationId,
       createdAt: now(),

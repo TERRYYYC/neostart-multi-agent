@@ -181,5 +181,692 @@
     "mentions": [],
     "sourceInvocationId": "Y-ZSufHNabXIHmSlFvGia",
     "createdAt": "2026-03-07T00:24:57.999Z"
+  },
+  {
+    "id": "ePbSBH1r4jJ55MOoOSZ5S",
+    "threadId": "Xlw_WIc5vkXqhz4RCG-X3",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "hi",
+    "mentions": [],
+    "createdAt": "2026-03-09T12:44:01.203Z"
+  },
+  {
+    "id": "dz8GOgDTPtlU3ImiclTFy",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@maine 打个招呼",
+    "mentions": [
+      "maine"
+    ],
+    "createdAt": "2026-03-09T20:13:45.764Z"
+  },
+  {
+    "id": "zmnwvV8cOvbrtBRo9Z34y",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-maine",
+    "visibility": "public",
+    "content": "你好！我是 Maine，一只思维缜密的缅因猫。很高兴认识你。有什么我可以帮你的吗？",
+    "mentions": [],
+    "sourceInvocationId": "ywpeLpq6cw2YvoAyQ_DBf",
+    "createdAt": "2026-03-09T20:13:53.172Z"
+  },
+  {
+    "id": "9QWO35GTfkKEJPvFJO3rN",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@maine 你使用的是什么模型？",
+    "mentions": [
+      "maine"
+    ],
+    "createdAt": "2026-03-09T20:14:18.868Z"
+  },
+  {
+    "id": "2zZtlIIdf3X_U80o18kP_",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-maine",
+    "visibility": "public",
+    "content": "我是基于 Anthropic 的 Claude 模型构建的，具体版本信息我无法直接获取。如果你需要确切的模型版本，可以通过 API 响应头或 Anthropic 的文档来确认。\n\n有什么我可以帮你的吗？",
+    "mentions": [],
+    "sourceInvocationId": "upNnKexhvkr9eOnHFpvuO",
+    "createdAt": "2026-03-09T20:14:28.107Z"
+  },
+  {
+    "id": "k45j_PchMY3BMVpF5_x7I",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@Siamese 你好",
+    "mentions": [
+      "siamese"
+    ],
+    "createdAt": "2026-03-09T20:14:53.727Z"
+  },
+  {
+    "id": "SNqm8Rg4-w-L2Y4R-cE-O",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-siamese",
+    "visibility": "public",
+    "content": "你好！我是 Siamese，一只快速直接的暹罗猫。有什么需要帮的吗？",
+    "mentions": [],
+    "sourceInvocationId": "fmKWENvUvE-7BgrBkKoj0",
+    "createdAt": "2026-03-09T20:15:01.808Z"
+  },
+  {
+    "id": "C_wTEwrjOdDroY9lcGu4J",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@ Siamese 你使用的是什么模型",
+    "mentions": [],
+    "createdAt": "2026-03-09T20:15:14.487Z"
+  },
+  {
+    "id": "DZhZqb4S-Q_SkDIxQyJxH",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@Siamese 你使用的是什么模型",
+    "mentions": [
+      "siamese"
+    ],
+    "createdAt": "2026-03-09T20:15:43.798Z"
+  },
+  {
+    "id": "syOxKKuQkxqYEWm1UaNWl",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-siamese",
+    "visibility": "public",
+    "content": "我是基于 Anthropic 的 Claude 模型构建的，但具体版本信息我无法直接获取。需要帮什么？",
+    "mentions": [],
+    "sourceInvocationId": "8SeOKlaEW4PCNhpLqlBDE",
+    "createdAt": "2026-03-09T20:15:49.400Z"
+  },
+  {
+    "id": "uCM01mH-TymkpZGbRZMAU",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@Persian 你使用的是什么模型",
+    "mentions": [
+      "persian"
+    ],
+    "createdAt": "2026-03-09T20:16:28.992Z"
+  },
+  {
+    "id": "blBpZwjXFP8AOzujKEHXt",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-persian",
+    "visibility": "public",
+    "content": "我是基于 Anthropic 的 Claude 模型构建的。具体的模型版本信息我无法从内部直接获取，如需确认精确版本，可以查看 API 响应头中的 `model` 字段或参考 Anthropic 官方文档。\n\n有什么需要我帮忙的吗？",
+    "mentions": [],
+    "sourceInvocationId": "RlqVcSCDIuGgJurSrohIZ",
+    "createdAt": "2026-03-09T20:16:37.089Z"
+  },
+  {
+    "id": "OfV6BlxVsBUpiuRNwcxyg",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@maine 你能看见Siamese的消息吗？",
+    "mentions": [
+      "maine"
+    ],
+    "createdAt": "2026-03-09T20:17:01.892Z"
+  },
+  {
+    "id": "WNBeE6Uj7lNTZuXo9bZrP",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-maine",
+    "visibility": "public",
+    "content": "是的，我能看见对话历史中 Siamese 和 Persian 的消息。在这段对话记录里：\n\n- **Siamese** 回答了用户的问候，并回答了关于使用什么模型的问题\n- **Persian** 也回答了关于模型的问题\n\n这些消息都在我的上下文窗口中，所以我可以看到整个对话历史。有什么需要我帮忙的吗？",
+    "mentions": [],
+    "sourceInvocationId": "Oy8DKWQDSQyZq4b3_ck1B",
+    "createdAt": "2026-03-09T20:17:11.967Z"
+  },
+  {
+    "id": "D_OAQ38Kjansva_JrxV0v",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@Siamese 你好",
+    "mentions": [
+      "siamese"
+    ],
+    "createdAt": "2026-03-09T20:53:13.720Z"
+  },
+  {
+    "id": "QQjkWhnUaqNvRm6Ih9JAm",
+    "threadId": "fZ-l_NChSvV5iYiZVADLh",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@Siamese 你好",
+    "mentions": [
+      "siamese"
+    ],
+    "createdAt": "2026-03-09T20:53:23.260Z"
+  },
+  {
+    "id": "680TRAbVfPuLVSgLsBSPD",
+    "threadId": "c1HffpZ-_AAI5EZUXFS8F",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@maine 打个招呼",
+    "mentions": [
+      "maine"
+    ],
+    "createdAt": "2026-03-09T21:13:15.703Z"
+  },
+  {
+    "id": "TDAK6KStF7OIBTpUDhXJS",
+    "threadId": "c1HffpZ-_AAI5EZUXFS8F",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-maine",
+    "visibility": "public",
+    "content": "*stretches slowly and blinks with dignified calm*\n\n你好。我是 Maine，一只缅因猫。\n\n有什么我可以帮你的？",
+    "mentions": [],
+    "sourceInvocationId": "0hc9oW4i9snCZFUeTrzyt",
+    "createdAt": "2026-03-09T21:13:23.348Z"
+  },
+  {
+    "id": "P_Vz3q9b98unCMzu72ApI",
+    "threadId": "pOO_TFOdtMOn8XqKLheNF",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@ birman 你好",
+    "mentions": [],
+    "createdAt": "2026-03-09T21:32:26.849Z"
+  },
+  {
+    "id": "Rzjv1R16ruadaF4_RnBAh",
+    "threadId": "pOO_TFOdtMOn8XqKLheNF",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@Birman (Flash) 你好",
+    "mentions": [
+      "birman"
+    ],
+    "createdAt": "2026-03-09T21:32:39.314Z"
+  },
+  {
+    "id": "NGs7mITImUY89XWB9kjjT",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@maine 打个招呼",
+    "mentions": [
+      "maine"
+    ],
+    "createdAt": "2026-03-09T21:52:32.791Z"
+  },
+  {
+    "id": "o_3AbFjlh3pWlUezrotc8",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-maine-opus",
+    "visibility": "public",
+    "content": "你好！有什么可以帮你的？",
+    "mentions": [],
+    "sourceInvocationId": "7adtKPOVGtLAr7d_mCeW6",
+    "createdAt": "2026-03-09T21:52:39.258Z"
+  },
+  {
+    "id": "OuXaviqK-drz0DMRwLGMe",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@birman 打个招呼",
+    "mentions": [
+      "birman"
+    ],
+    "createdAt": "2026-03-09T21:53:01.281Z"
+  },
+  {
+    "id": "Fq66oxyW3f_IAcHDWudnR",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@ragdoll 打个招呼",
+    "mentions": [
+      "ragdoll"
+    ],
+    "createdAt": "2026-03-09T21:53:22.931Z"
+  },
+  {
+    "id": "MzoekJ5am1YsfJzYRy09Y",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-ragdoll",
+    "visibility": "public",
+    "content": "你好呀，我是 Ragdoll。很高兴见到你。",
+    "mentions": [],
+    "sourceInvocationId": "LwPIUucICOKUH6wiNH1Pa",
+    "createdAt": "2026-03-09T21:53:27.659Z"
+  },
+  {
+    "id": "Y30FgFAKjX-XZIPqgYmYb",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@ragdoll 你是什么模型啊？",
+    "mentions": [
+      "ragdoll"
+    ],
+    "createdAt": "2026-03-09T21:53:51.052Z"
+  },
+  {
+    "id": "ymfXkr-cs_2KdRTsx8BfP",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-ragdoll",
+    "visibility": "public",
+    "content": "我是 OpenAI 的助手，在这个环境里以 `Codex` 代理运行，可理解为基于 `GPT-5` 的模型。",
+    "mentions": [],
+    "sourceInvocationId": "lQxoLwABeT4CiZLktAlnU",
+    "createdAt": "2026-03-09T21:53:56.925Z"
+  },
+  {
+    "id": "hnKbJWEUq8QOu3FBBgPlI",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@birman 打个招呼",
+    "mentions": [
+      "birman"
+    ],
+    "createdAt": "2026-03-09T21:54:07.314Z"
+  },
+  {
+    "id": "c1whi8x4iMYlq22lg_mG2",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@birman 打个招呼",
+    "mentions": [
+      "birman"
+    ],
+    "createdAt": "2026-03-09T21:58:53.244Z"
+  },
+  {
+    "id": "5dA7VmyuJjbTKx8Ls1OJT",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@birman 打个招呼",
+    "mentions": [
+      "birman"
+    ],
+    "createdAt": "2026-03-09T21:59:57.451Z"
+  },
+  {
+    "id": "RlQ1oSYNUW91JuUDRmY4h",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@birman 打个招呼",
+    "mentions": [
+      "birman"
+    ],
+    "createdAt": "2026-03-09T22:05:50.789Z"
+  },
+  {
+    "id": "XmymPQzdSje6AdFhjSGH5",
+    "threadId": "bTPgrSl2qLxWJoewdy105",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@birman 打个招呼",
+    "mentions": [
+      "birman"
+    ],
+    "createdAt": "2026-03-09T22:06:36.566Z"
+  },
+  {
+    "id": "0nbmGKQIuwCddOiW0zouS",
+    "threadId": "IsNUbHCaBOxBQ_UQHlfV9",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "test-user",
+    "visibility": "public",
+    "content": "@birman say hello",
+    "mentions": [
+      "birman"
+    ],
+    "createdAt": "2026-03-09T22:07:10.963Z"
+  },
+  {
+    "id": "L8eNXT1hCsXE2hBQ078NO",
+    "threadId": "NjxhwosgtbkkdkCdxrTGx",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "test-user",
+    "visibility": "public",
+    "content": "@birman say hello",
+    "mentions": [
+      "birman"
+    ],
+    "createdAt": "2026-03-09T22:07:34.003Z"
+  },
+  {
+    "id": "0oFTrbjtjNiuQbsf4Wydb",
+    "threadId": "NjxhwosgtbkkdkCdxrTGx",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@birman say hello",
+    "mentions": [
+      "birman"
+    ],
+    "createdAt": "2026-03-09T22:10:55.875Z"
+  },
+  {
+    "id": "Xo8UsNo7T8g0RmyzhQhAk",
+    "threadId": "NjxhwosgtbkkdkCdxrTGx",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-birman",
+    "visibility": "public",
+    "content": "*Purrs softly* Hello! I am Birman, your wise and swift companion. How can I assist you in the Cat Cafe today?",
+    "mentions": [],
+    "sourceInvocationId": "InOOPHba6wC3kov8xXyjk",
+    "createdAt": "2026-03-09T22:11:07.298Z"
+  },
+  {
+    "id": "2SLPxQzUrUoP1JkhPDRbz",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@maine message number 1",
+    "mentions": [
+      "maine"
+    ],
+    "createdAt": "2026-03-09T22:37:53.518Z"
+  },
+  {
+    "id": "YBCV4hbmSBS2-D1PZpb-K",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-maine-opus",
+    "visibility": "public",
+    "content": "[Maine] I received your task: \"message number 1\". This is a stub response from the Maine cat.",
+    "mentions": [],
+    "sourceInvocationId": "8fvZ6wMpvDNcJj4U5FXgB",
+    "createdAt": "2026-03-09T22:37:53.548Z"
+  },
+  {
+    "id": "P_GRwra-U0-elKQytUpao",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@maine message number 2",
+    "mentions": [
+      "maine"
+    ],
+    "createdAt": "2026-03-09T22:37:54.540Z"
+  },
+  {
+    "id": "Z03U3o4MTjZSQ6N5Xdgas",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-maine-opus",
+    "visibility": "public",
+    "content": "[Maine] I received your task: \"message number 2\". This is a stub response from the Maine cat.",
+    "mentions": [],
+    "sourceInvocationId": "Q6LkNf1QoraP7wGdIU6QB",
+    "createdAt": "2026-03-09T22:37:54.581Z"
+  },
+  {
+    "id": "N0V--JYud-YOXQ8ro4jG8",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@maine message number 3",
+    "mentions": [
+      "maine"
+    ],
+    "createdAt": "2026-03-09T22:37:55.561Z"
+  },
+  {
+    "id": "FUMlalQ7A7hZYH9_BBGiD",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-maine-opus",
+    "visibility": "public",
+    "content": "[Maine] I received your task: \"message number 3\". This is a stub response from the Maine cat.",
+    "mentions": [],
+    "sourceInvocationId": "vKM0wqxnaY5XJTn_bYUSA",
+    "createdAt": "2026-03-09T22:37:55.597Z"
+  },
+  {
+    "id": "iS-jID4-XQWze0BU0XEyo",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@maine message number 4",
+    "mentions": [
+      "maine"
+    ],
+    "createdAt": "2026-03-09T22:37:56.584Z"
+  },
+  {
+    "id": "CVaDCp-pQiGDifIsfX8mp",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-maine-opus",
+    "visibility": "public",
+    "content": "[Maine] I received your task: \"message number 4\". This is a stub response from the Maine cat.",
+    "mentions": [],
+    "sourceInvocationId": "ZO34zhI70qPWeMAu7hNVz",
+    "createdAt": "2026-03-09T22:37:56.641Z"
+  },
+  {
+    "id": "o8N1udWNag6jdbS9Y_u1S",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@ Persian 我做一个测试",
+    "mentions": [],
+    "createdAt": "2026-03-09T22:42:54.403Z"
+  },
+  {
+    "id": "XyzH2RSqx9vvctPSMe4wi",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@Persian 我们做一个测试",
+    "mentions": [
+      "persian"
+    ],
+    "createdAt": "2026-03-09T22:43:16.208Z"
+  },
+  {
+    "id": "8ocSlAMOdHQ71vM5Vi_2A",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-persian",
+    "visibility": "public",
+    "content": "\n\n[Persian] 收到。我们来做测试吧——请告诉我你想测试什么内容？",
+    "mentions": [],
+    "sourceInvocationId": "SX994tD7MDUkkPzsPYoFj",
+    "createdAt": "2026-03-09T22:43:23.433Z"
+  },
+  {
+    "id": "PmwhPmJqG0JJia9MY1O3x",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@maine message number 1",
+    "mentions": [
+      "maine"
+    ],
+    "createdAt": "2026-03-09T22:43:36.130Z"
+  },
+  {
+    "id": "QzdvqsAaPRpxVmDFTShTU",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-maine-opus",
+    "visibility": "public",
+    "content": "\n\n[Maine] Received: \"message number 1\". How can I help you? What would you like me to work on?",
+    "mentions": [],
+    "sourceInvocationId": "1-mAqMBUMwZM-MRO0DonY",
+    "createdAt": "2026-03-09T22:43:42.797Z"
+  },
+  {
+    "id": "vuFDk8F4lyKIAi_-d6-Jg",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@Persian 我们做一个测试2",
+    "mentions": [
+      "persian"
+    ],
+    "createdAt": "2026-03-09T22:43:49.254Z"
+  },
+  {
+    "id": "xm_7OdldYYvguxKx147I6",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-persian",
+    "visibility": "public",
+    "content": "\n\n[Persian] 收到，测试 2。请告诉我你想测试的具体内容，我随时准备好配合。",
+    "mentions": [],
+    "sourceInvocationId": "Vg-s8g2Gasagj4H7qmIry",
+    "createdAt": "2026-03-09T22:43:56.158Z"
+  },
+  {
+    "id": "w7bCajBvqmhF26kFVKn6o",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@maine smoke tests是什么意思啊",
+    "mentions": [
+      "maine"
+    ],
+    "createdAt": "2026-03-09T22:54:06.636Z"
+  },
+  {
+    "id": "CJUPfu97MG-q7vTNUjP-j",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-maine-opus",
+    "visibility": "public",
+    "content": "**Smoke tests**（冒烟测试）是软件测试中的一个术语，指的是对系统最基本、最核心的功能进行快速验证，确保它们能正常运行。\n\n**来源**：这个词借用自硬件/电子工程——给设备通电后，如果没有冒烟，说明基本没烧坏，可以继续做更深入的测试。\n\n**特点**：\n- **范围浅、速度快**：不深入测试细节，只验证关键路径能跑通\n- **在详细测试之前执行**：作为\"门槛测试\"，如果 smoke test 都过不了，就没必要跑更完整的测试套件\n- **典型例子**：应用能启动吗？登录能成功吗？首页能加载吗？API 能响应吗？\n\n**和其他测试的关系**：\n\n| 测试类型 | 深度 | 目的 |\n|---------|------|------|\n| Smoke test | 最浅 | 验证系统\"没冒烟\"，基本功能可用 |\n| Sanity test | 浅 | 针对特定改动做快速验证 |\n| Regression test | 深 | 确保新改动没有破坏已有功能 |\n| E2E test | 深 | 模拟完整用户流程 |\n\n简单说：smoke test 就是\"先确认房子没着火，再去检查装修细节\"。",
+    "mentions": [],
+    "sourceInvocationId": "398Tn-TILmSIBYBNzANfw",
+    "createdAt": "2026-03-09T22:54:21.443Z"
+  },
+  {
+    "id": "O_ZQV60q-TIjKrhgN62lb",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "user",
+    "authorType": "user",
+    "authorId": "user-default",
+    "visibility": "public",
+    "content": "@maine 哈哈",
+    "mentions": [
+      "maine"
+    ],
+    "createdAt": "2026-03-09T22:56:42.761Z"
+  },
+  {
+    "id": "dz-7VQyKJlgDFdVtlppx_",
+    "threadId": "ph2xXEA2DUJvkgEJjKerv",
+    "role": "assistant",
+    "authorType": "agent",
+    "authorId": "cat-maine-opus",
+    "visibility": "public",
+    "content": "\n\n哈哈，有什么想聊的或者需要帮忙的，随时说。",
+    "mentions": [],
+    "sourceInvocationId": "IsKbBJ63xoZgpnE0N8M0X",
+    "createdAt": "2026-03-09T22:56:55.450Z"
   }
 ]

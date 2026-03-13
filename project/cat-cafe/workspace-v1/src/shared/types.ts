@@ -49,7 +49,36 @@ export type EventType =
   | 'invocation.completed'
   | 'invocation.failed'
   | 'session.created'
-  | 'session.selected';
+  | 'session.selected'
+  | 'session.sealed'
+  | 'session.handoff'
+  | 'memory.extracted';     // auto-extracted memory from agent output / 从 agent 输出中自动提取的记忆
+
+/** Summary generation strategy for session handoff. */
+/** Session handoff 的摘要生成策略。 */
+export type SummaryStrategy = 'rule-based' | 'llm-generated';
+
+/** Memory scope — three-level hierarchy for long-term memory. */
+/** 记忆范围 — 长期记忆的三级层次结构。 */
+export type MemoryScope = 'global' | 'thread' | 'agent';
+
+/** Memory category — semantic classification. */
+/** 记忆类别 — 语义分类。 */
+export type MemoryCategory =
+  | 'fact'             // objective facts / 客观事实
+  | 'preference'       // user preferences / 用户偏好
+  | 'context'          // project/domain context / 项目/领域上下文
+  | 'user-profile'     // user identity info / 用户身份信息
+  | 'session-insight'  // learned from conversation patterns / 从对话模式中学习
+  | 'agent-state';     // agent-specific learned behavior / Agent 特有的习得行为
+
+/** Memory creation source. */
+/** 记忆创建来源。 */
+export type MemorySource = 'explicit' | 'auto-extracted';
+
+/** Trigger reason for automatic session sealing. */
+/** 自动 session 封存的触发原因。 */
+export type HandoffTrigger = 'message-count' | 'token-estimate' | 'manual';
 
 // ---------------------------------------------------------------------------
 // Core entities / 核心实体
@@ -69,6 +98,7 @@ export interface Thread {
   id: string;
   title: string;
   workspacePath?: string;
+  selectedAgentIds?: string[];  // cats chosen at thread creation / 创建时选择的猫
   createdAt: string;   // ISO 8601
   updatedAt: string;   // ISO 8601
   archivedAt?: string; // ISO 8601
@@ -105,10 +135,12 @@ export interface Message {
 export interface AgentProfile {
   id: string;
   name: string;
-  provider: string;   // e.g. 'anthropic', 'openai'
-  model: string;      // e.g. 'claude-sonnet-4-6'
-  persona: string;    // system prompt / personality description
+  provider: string;      // e.g. 'anthropic', 'openai', 'google'
+  model: string;         // e.g. 'claude-sonnet-4-6'
+  persona: string;       // system prompt / personality description
   enabled: boolean;
+  family?: string;       // grouping key, e.g. 'maine', 'siamese' / 分组键
+  displayName?: string;  // variant label, e.g. 'Sonnet', 'Opus' / 变体标签
 }
 
 /**
@@ -126,8 +158,10 @@ export interface AgentSession {
   status: SessionStatus;
   createdAt: string;     // ISO 8601
   lastActiveAt: string;  // ISO 8601
-  sealedAt?: string;     // ISO 8601 — reserved for later phases
-  contextSummary?: string;
+  sealedAt?: string;     // ISO 8601 — set when session is sealed / 封存时设置
+  contextSummary?: string; // summary of conversation when sealed / 封存时的对话摘要
+  predecessorSessionId?: string;  // → AgentSession.id of sealed predecessor / 前任封存 session
+  handoffId?: string;             // → SessionHandoff.id if created via handoff / 通过 handoff 创建时的关联 ID
 }
 
 /**
@@ -176,6 +210,24 @@ export interface EventLog {
 }
 
 /**
+ * SessionHandoff — records one session sealing + continuation event.
+ * 会话交接 — 记录一次 session 封存和延续事件。
+ *
+ * Created when a session is sealed and a new continuation session is created.
+ * 当一个 session 被封存并创建新的延续 session 时创建。
+ */
+export interface SessionHandoff {
+  id: string;
+  threadId: string;
+  agentId: string;              // → AgentProfile.id
+  sealedSessionId: string;      // → AgentSession.id (the sealed predecessor / 被封存的前任)
+  newSessionId: string;         // → AgentSession.id (the new continuation / 新的延续)
+  summaryStrategy: SummaryStrategy;
+  triggerReason: HandoffTrigger;
+  createdAt: string;            // ISO 8601
+}
+
+/**
  * WorkspaceBinding — binds one Thread to one project path (§5.2 WorkspaceBinding).
  * 工作空间绑定 — 将一个线程绑定到一个项目路径。
  */
@@ -184,4 +236,32 @@ export interface WorkspaceBinding {
   threadId: string;
   path: string;
   createdAt: string;  // ISO 8601
+}
+
+/**
+ * Memory — persistent cross-thread knowledge (Phase 4).
+ * 记忆 — 跨线程持久化知识（Phase 4）。
+ *
+ * Three-level scope hierarchy:
+ * 三级范围层次结构：
+ *   global  — visible to all agents in all threads / 所有 agent 在所有线程中可见
+ *   thread  — visible to all agents in one thread / 所有 agent 在一个线程中可见
+ *   agent   — visible to one agent across all threads / 一个 agent 在所有线程中可见
+ */
+export interface Memory {
+  id: string;
+  scope: MemoryScope;
+  threadId?: string;          // required when scope='thread' / scope='thread' 时必填
+  agentId?: string;           // required when scope='agent' / scope='agent' 时必填
+  category: MemoryCategory;
+  key: string;                // semantic key for dedup, e.g. "user_name" / 语义键用于去重
+  value: string;              // the actual memory content / 实际记忆内容
+  source: MemorySource;       // how this memory was created / 创建方式
+  confidence: number;         // 0.0–1.0, higher = more reliable / 置信度
+  visibility: Visibility;
+  tags: string[];
+  createdAt: string;          // ISO 8601
+  updatedAt: string;          // ISO 8601
+  lastAccessedAt: string;     // ISO 8601 — updated when used in prompt / 被注入 prompt 时更新
+  accessCount: number;        // incremented when used in prompt / 被注入 prompt 时递增
 }

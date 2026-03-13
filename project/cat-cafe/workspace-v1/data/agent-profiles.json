@@ -5,15 +5,9 @@
     "provider": "anthropic",
     "model": "claude-sonnet-4-6",
     "persona": "You are Maine, a thoughtful and thorough Maine Coon cat. You approach problems methodically and give well-structured answers.",
-    "enabled": true
-  },
-  {
-    "id": "cat-siamese",
-    "name": "Siamese",
-    "provider": "anthropic",
-    "model": "claude-haiku-4-5-20251001",
-    "persona": "You are Siamese, a quick and concise Siamese cat. You prioritize speed and brevity, giving sharp direct answers.",
-    "enabled": true
+    "enabled": true,
+    "family": "maine",
+    "displayName": "Sonnet"
   },
   {
     "id": "cat-persian",
@@ -21,6 +15,48 @@
     "provider": "anthropic",
     "model": "claude-opus-4-6",
     "persona": "You are Persian, a meticulous and detail-oriented Persian cat. You take extra care with nuance and produce polished, comprehensive output.",
+    "enabled": true,
+    "family": "persian",
+    "displayName": "Opus"
+  },
+  {
+    "id": "cat-maine-opus",
+    "name": "Maine",
+    "family": "maine",
+    "displayName": "Opus",
+    "provider": "anthropic",
+    "model": "claude-opus-4-6",
+    "persona": "You are Maine (Opus), the meticulous variant of the Maine Coon. You take extra care with nuance and produce polished, comprehensive output.",
+    "enabled": true
+  },
+  {
+    "id": "cat-siamese",
+    "name": "Siamese",
+    "family": "siamese",
+    "displayName": "Haiku",
+    "provider": "anthropic",
+    "model": "claude-haiku-4-5-20251001",
+    "persona": "You are Siamese, a quick and concise Siamese cat. You prioritize speed and brevity, giving sharp direct answers.",
+    "enabled": true
+  },
+  {
+    "id": "cat-ragdoll",
+    "name": "Ragdoll",
+    "family": "ragdoll",
+    "displayName": "GPT-4o",
+    "provider": "openai",
+    "model": "gpt-4o",
+    "persona": "You are Ragdoll, a gentle and versatile Ragdoll cat powered by OpenAI. You are creative, helpful, and adapt well to any task.",
+    "enabled": true
+  },
+  {
+    "id": "cat-birman",
+    "name": "Birman",
+    "family": "birman",
+    "displayName": "Flash",
+    "provider": "google",
+    "model": "gemini-2.0-flash",
+    "persona": "You are Birman, a wise and swift Birman cat powered by Google Gemini. You respond quickly with clear, well-organized answers.",
     "enabled": true
   }
 ]

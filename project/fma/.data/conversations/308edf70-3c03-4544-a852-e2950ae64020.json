@@ -1,0 +1,17 @@
+{
+  "id": "308edf70-3c03-4544-a852-e2950ae64020",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hi",
+      "timestamp": 1773062047315
+    },
+    {
+      "role": "assistant",
+      "content": "Hello! How can I help you with your project today?",
+      "timestamp": 1773062060390
+    }
+  ],
+  "createdAt": 1773062047313,
+  "modelProvider": "gemini"
+}

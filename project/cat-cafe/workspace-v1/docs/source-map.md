@@ -2,7 +2,7 @@
 
 Every file in `src/`, what it does, key exports, and important dependencies.
 
-Last updated: Phase 1 complete, Phase 2 ready.
+Last updated: Phase 4 — Long-term Memory complete (Memory entity, CRUD API, relevance scoring, prompt injection, auto-extraction, MemoryPanel UI, SSE notifications).
 
 ---
 
@@ -14,12 +14,16 @@ Last updated: Phase 1 complete, Phase 2 ready.
 
 **Key exports**:
 
-- Scalar unions: `Visibility`, `ThreadStatus`, `InvocationState`, `SessionStatus`, `MessageRole`, `AuthorType`, `EventType`
-- Interfaces: `Thread`, `Message`, `AgentProfile`, `AgentSession`, `AgentInvocation`, `EventLog`, `WorkspaceBinding`
+- Scalar unions: `Visibility`, `ThreadStatus`, `InvocationState`, `SessionStatus`, `MessageRole`, `AuthorType`, `EventType`, `MemoryScope`, `MemoryCategory`, `MemorySource`
+- Interfaces: `Thread`, `Message`, `AgentProfile`, `AgentSession`, `AgentInvocation`, `EventLog`, `WorkspaceBinding`, `Memory`
 
 **Dependencies**: none
 
 **Notes**: `Visibility` is restricted to `'public' | 'private' | 'system-summary'`. Do not add new values without updating the architecture doc. `InvocationState` machine: `queued → running → completed/failed`, `queued → cancelled`.
+
+**Phase 3 additions**: `AgentProfile` gained optional `family?: string` (grouping key) and `displayName?: string` (variant label). `Thread` gained optional `selectedAgentIds?: string[]` (cats chosen at thread creation).
+
+**Phase 4 additions**: `MemoryScope` (`'global' | 'thread' | 'agent'`), `MemoryCategory` (6 values), `MemorySource` (`'explicit' | 'auto-extracted'`), `Memory` interface (id, scope, threadId?, agentId?, category, key, value, source, confidence, visibility, tags, timestamps, accessCount). `EventType` gained `'memory.extracted'`.
 
 ### src/shared/id.ts
 
@@ -52,30 +56,33 @@ Last updated: Phase 1 complete, Phase 2 ready.
 
 ### src/server/persistence/index.ts
 
-**Purpose**: Instantiates 7 concrete stores, one per entity type.
+**Purpose**: Instantiates 8 concrete stores, one per entity type.
 
 **Key exports**:
 
-- `threadStore`, `messageStore`, `agentProfileStore`, `agentSessionStore`, `invocationStore`, `eventLogStore`, `workspaceBindingStore`
+- `threadStore`, `messageStore`, `agentProfileStore`, `agentSessionStore`, `invocationStore`, `eventLogStore`, `workspaceBindingStore`, `memoryStore`
 - re-exports `Store` type
 
 **Configuration**: Data directory defaults to `./data` (relative to cwd), overridable via `DATA_DIR` env var.
 
-**Data files**: `threads.json`, `messages.json`, `agent-profiles.json`, `agent-sessions.json`, `invocations.json`, `event-logs.json`, `workspace-bindings.json`
+**Data files**: `threads.json`, `messages.json`, `agent-profiles.json`, `agent-sessions.json`, `invocations.json`, `event-logs.json`, `workspace-bindings.json`, `memories.json`
 
 ### src/server/persistence/seed.ts
 
-**Purpose**: Seeds 3 default cat profiles on first bootstrap.
+**Purpose**: Seeds default cat profiles on first bootstrap; patches existing profiles missing new fields.
 
-**Key exports**: `seedAgentProfiles(): Promise<void>`, `DEFAULT_CATS: AgentProfile[]`
+**Key exports**: `seedAgentProfiles(): Promise<void>`, `seedMemories(): Promise<void>`, `DEFAULT_CATS: AgentProfile[]`, `SEED_MEMORIES: Memory[]`
 
-**Cats**:
+**Cats** (6 profiles, 5 families, 3 providers):
 
-- Maine (cat-maine) — claude-sonnet-4-6, methodical
-- Siamese (cat-siamese) — claude-haiku-4-5-20251001, concise
-- Persian (cat-persian) — claude-opus-4-6, meticulous
+- Maine Sonnet (cat-maine) — anthropic/claude-sonnet-4-6, family: "maine", displayName: "Sonnet"
+- Maine Opus (cat-maine-opus) — anthropic/claude-opus-4-6, family: "maine", displayName: "Opus"
+- Siamese Haiku (cat-siamese) — anthropic/claude-haiku-4-5-20251001, family: "siamese", displayName: "Haiku"
+- Persian Opus (cat-persian) — anthropic/claude-opus-4-6, family: "persian", displayName: "Opus"
+- Ragdoll GPT-4o (cat-ragdoll) — openai/gpt-4o, family: "ragdoll", displayName: "GPT-4o"
+- Birman Flash (cat-birman) — google/gemini-2.0-flash, family: "birman", displayName: "Flash"
 
-**Notes**: Idempotent — skips profiles that already exist by id.
+**Notes**: Idempotent — skips profiles that already exist by id. Phase 3 Upgrade: also patches existing profiles missing `family` or `displayName` fields (seed migration). Phase 3 Multi-Provider: added OpenAI and Google cats. Phase 4: added `seedMemories()` which seeds 3 demo memories (user_name, response_style, project_language).
 
 ---
 
@@ -122,7 +129,7 @@ Last updated: Phase 1 complete, Phase 2 ready.
 
 ### src/server/runtime/runner.ts
 
-**Purpose**: Defines the `Runner` interface and provides `StubRunner` for Phase 1.
+**Purpose**: Defines the `Runner` interface and provides `StubRunner` for testing.
 
 **Key exports**:
 
@@ -130,9 +137,97 @@ Last updated: Phase 1 complete, Phase 2 ready.
 - `RunParams`: invocationId, threadId, profile, taskText, `onTextDelta` callback
 - `RunnerResult`: `{ ok, text?, errorCode?, errorMessage? }`
 - `StubRunner` class: deterministic reply, simulates 3 streaming chunks
-- `stubRunner` — default instance
+- `stubRunner` — default instance (used when `CLI_RUNNER=stub`)
 
-**Phase 2 action**: Create `AnthropicRunner implements Runner` in a new file. The orchestrator accepts a runner via `ExecuteParams.runner`, defaulting to `stubRunner`. Change the default to the new real runner.
+### src/server/runtime/cli-runner.ts
+
+**Purpose**: Real LLM execution via CLI subprocess. Adapted from fma project's cli-runner.ts.
+
+**Key exports**:
+
+- `CliRunner` class: implements `Runner`, spawns `claude` CLI as child process
+- `cliRunner` — default instance (used by orchestrator in Phase 2+)
+- `getActiveChildrenCount()` — monitoring/testing helper
+
+**Features**:
+
+- Spawns `claude -p --output-format stream-json --model <model> --system-prompt <persona>`
+- Loads conversation history from `messageStore` (dual truncation: turn limit + per-message char limit)
+- Heartbeat timeout kills hung CLI processes (default 120s, configurable via `CLI_HEARTBEAT_TIMEOUT`)
+- stderr sliding window (2000 chars max, prevents memory leak)
+- SIGTERM/SIGKILL cleanup prevents orphan processes on server shutdown
+- Removes Claude nesting detection env vars to prevent CLI conflicts
+- Phase 4: loads relevant memories via `findRelevantMemories()` and injects into prompt between predecessor summary and conversation history
+
+**Dependencies**: `node:child_process`, `runner.ts` (interface), `messageStore`, `memory-loader.ts` (Phase 4)
+
+**Env vars**: `CLAUDE_PATH`, `CLI_HEARTBEAT_TIMEOUT`, `MAX_HISTORY_MESSAGES`, `MAX_MESSAGE_CHARS`, `MAX_MEMORIES_IN_CONTEXT` (Phase 4), `MAX_MEMORY_CHARS` (Phase 4)
+
+### src/server/runtime/openai-runner.ts (Phase 3 Multi-Provider)
+
+**Purpose**: LLM execution via Codex CLI subprocess. Same architecture as cli-runner.ts.
+
+**Key exports**:
+
+- `OpenAiRunner` class: implements `Runner`, spawns `codex exec --json` as child process
+- `openaiRunner` — singleton instance
+
+**Features**:
+
+- Spawns `codex exec --json "<prompt>"` for non-interactive NDJSON output
+- NDJSON event parsing: `item.completed` + `agent_message` → extract `item.text`
+- Persona prepended to prompt as `[System Instructions]`
+- Dual truncation on conversation history (same as cli-runner)
+- Heartbeat timeout, stderr sliding window, SIGTERM/SIGKILL cleanup
+- Clean environment: strips Claude nesting detection env vars before spawn
+- `--model` only from `CODEX_MODEL` env var (NOT from profile.model)
+- Clear spawn error if `codex` CLI is not installed
+
+**Dependencies**: `node:child_process`, `runner.ts` (interface), `messageStore`
+
+**Env vars**: `CODEX_PATH`, `CODEX_MODEL`, `CLI_HEARTBEAT_TIMEOUT`, `MAX_HISTORY_MESSAGES`, `MAX_MESSAGE_CHARS`
+
+### src/server/runtime/gemini-runner.ts (Phase 3 Multi-Provider)
+
+**Purpose**: LLM execution via Gemini CLI subprocess. Same architecture as cli-runner.ts.
+
+**Key exports**:
+
+- `GeminiRunner` class: implements `Runner`, spawns `gemini -p --output-format stream-json` as child process
+- `geminiRunner` — singleton instance
+- `isHarmlessGeminiTelemetry(stderr)` — filters non-fatal ECONNRESET telemetry noise
+
+**Features**:
+
+- Spawns `gemini -p <prompt> --output-format stream-json` (prompt RIGHT AFTER `-p`)
+- NDJSON event parsing: `message` events with `role === 'assistant'` → extract `content`
+- ⚠️ Filters `role:"user"` messages (Gemini echoes user input back)
+- Persona prepended to prompt as `[System Instructions]`
+- Dual truncation on conversation history (same as cli-runner)
+- Heartbeat timeout, stderr sliding window, SIGTERM/SIGKILL cleanup
+- Clean environment: strips Claude nesting detection env vars before spawn
+- `--model` only from `GEMINI_MODEL` env var (NOT from profile.model)
+- `isHarmlessGeminiTelemetry()` filters benign ECONNRESET stderr noise
+- Clear spawn error if `gemini` CLI is not installed
+
+**Dependencies**: `node:child_process`, `runner.ts` (interface), `messageStore`
+
+**Env vars**: `GEMINI_PATH`, `GEMINI_MODEL`, `CLI_HEARTBEAT_TIMEOUT`, `MAX_HISTORY_MESSAGES`, `MAX_MESSAGE_CHARS`
+
+### src/server/runtime/provider-router.ts (Phase 3 Multi-Provider)
+
+**Purpose**: Routes `AgentProfile.provider` to the correct Runner instance.
+
+**Key exports**:
+
+- `routeToRunner(profile: AgentProfile): Runner` — main routing function
+- `KNOWN_PROVIDERS` — `['anthropic', 'openai', 'google']`
+- `PROVIDER_MODEL_SUGGESTIONS` — suggested models per provider (for UI)
+- `PROVIDER_MODEL_PREFIXES` — expected model prefixes per provider (for soft validation)
+- `isKnownProvider(provider)` — type guard
+- `validateModelForProvider(provider, model)` — returns warning or null
+
+**Dependencies**: `cli-runner.ts`, `openai-runner.ts`, `gemini-runner.ts`
 
 ### src/server/runtime/orchestrator.ts
 
@@ -145,11 +240,50 @@ Last updated: Phase 1 complete, Phase 2 ready.
 - `InvocationResult = { ok: true; invocation; replyMessage } | { ok: false; reason }`
 - `extractTaskText(content, mention): string` — strips @mention from message
 
-**Lifecycle steps**: resolve agent → create invocation (queued) → find/create session → run (running + emit text.delta events) → assemble public reply Message → close invocation (completed/failed)
+**Lifecycle steps**: resolve agent → create invocation (queued) → find/create session → **check session handoff (Step 3.5)** → route to provider runner (running + emit text.delta events) → assemble public reply Message → close invocation (completed/failed)
 
-**Dependencies**: `agentRegistry`, `invocationStore`, `messageStore`, `emitEvent`, `findOrCreateSession`, `stubRunner`
+**Dependencies**: `agentRegistry`, `invocationStore`, `messageStore`, `emitEvent`, `findOrCreateSession`, `routeToRunner` (Phase 3), `stubRunner` (fallback via `CLI_RUNNER=stub`), `shouldSealSession`, `executeHandoff` (Phase 3 Session Chain), `parseMemoryMarkers`, `stripMemoryMarkers`, `createMemoriesFromExtraction` (Phase 4)
 
 **Architecture rule**: AgentInvocation record MUST exist before any agent output appears.
+
+**Phase 3 Session Chain**: Step 3.5 inserted between session selection and runner execution. If `shouldSealSession()` returns true, seals current session, generates context summary, creates new continuation session, and re-binds invocation.
+
+**Phase 4 Memory Auto-extraction**: After successful invocation, scans reply text for `[MEMORY: ...]` markers. If found: parses markers, strips them from visible reply message, creates Memory entities via `createMemoriesFromExtraction()`, emits `memory.extracted` SSE events for each created memory.
+
+### src/server/runtime/session-chain.ts (Phase 3 Session Chain)
+
+**Purpose**: Automatic session sealing, context summarization, and handoff management.
+
+**Key exports**:
+
+- `shouldSealSession(threadId, agentId, session): Promise<SealCheck>` — checks message/token thresholds
+- `sealSession(session): Promise<AgentSession>` — marks session as sealed
+- `generateContextSummary(threadId, session, profile, strategy?): Promise<string>` — rule-based or LLM summary
+- `executeHandoff(threadId, agentId, session, invocationId, profile, reason, strategy?): Promise<HandoffResult>` — full seal → summarize → create continuation
+- `getSessionChain(threadId, agentId): Promise<AgentSession[]>` — ordered session history
+- `getPredecessorSummary(sessionId): Promise<string | null>` — loads predecessor's context summary
+- `SESSION_CHAIN_CONFIG` — current configuration values
+
+**Dependencies**: `agentSessionStore`, `messageStore`, `sessionHandoffStore`, `emitEvent`, `routeToRunner`, `generateId`
+
+**Env vars**: `SESSION_SEAL_MESSAGE_THRESHOLD` (30), `SESSION_SEAL_TOKEN_THRESHOLD` (20000), `SESSION_SUMMARY_STRATEGY` ('rule-based'), `SESSION_SUMMARY_MAX_CHARS` (1000)
+
+### src/server/runtime/memory-loader.ts (Phase 4 Long-term Memory)
+
+**Purpose**: Scores, selects, and formats memories for prompt injection. Also handles auto-extraction of `[MEMORY:]` markers from agent output.
+
+**Key exports**:
+
+- `scoreMemory(memory, taskText, recentMessages, agentId, threadId): number` — weighted relevance scoring (scope match + confidence + recency + frequency + keyword match + category boost). Returns -1 to skip wrong-scope memories.
+- `findRelevantMemories(threadId, agentId, taskText, recentMessages): Promise<MemoryContext>` — loads candidate memories, scores, selects top N within char budget, updates access tracking
+- `formatMemoriesForPrompt(memories): string` — formats as `[Learned Memory]:\n- [category] value (confidence: X%)`
+- `parseMemoryMarkers(text): ExtractedMemory[]` — regex extraction of `[MEMORY: category=X, key=Y, value=Z]` markers
+- `stripMemoryMarkers(text): string` — removes `[MEMORY:]` markers from text
+- `createMemoriesFromExtraction(extracted, scope?, threadId?, agentId?): Promise<Memory[]>` — creates Memory entities with dedup (updates existing if key matches)
+
+**Dependencies**: `memoryStore`, `generateId`
+
+**Env vars**: `MAX_MEMORIES_IN_CONTEXT` (3), `MAX_MEMORY_CHARS` (500)
 
 ### src/server/runtime/index.ts
 
@@ -180,7 +314,7 @@ Last updated: Phase 1 complete, Phase 2 ready.
 
 **Internal function**: `toSsePayload(event: EventLog): SsePayload | null` — transforms internal EventLog to safe SSE payload. Returns null for events that should be dropped.
 
-**Forwarded events**: `invocation.created/started/completed/failed`, `text.delta` (chunk only), `session.created/selected`
+**Forwarded events**: `invocation.created/started/completed/failed`, `text.delta` (chunk only), `session.created/selected/sealed`, `session.handoff`, `memory.extracted` (Phase 4)
 
 **Hard rule**: NEVER pushes raw private log payload into the public stream. Only safe, minimal data fields are included.
 
@@ -200,11 +334,13 @@ Last updated: Phase 1 complete, Phase 2 ready.
 
 **Routes**:
 
-- `POST /api/threads` — create a new thread (accepts `{ title }`)
-- `GET /api/threads` — list all threads
+- `POST /api/threads` — create a new thread (accepts `{ title, workspacePath?, selectedAgentIds? }`)
+- `GET /api/threads` — list all threads (sorted by updatedAt desc)
 - `GET /api/threads/:id` — get one thread by id
 
 **Dependencies**: `threadStore`
+
+**Phase 3 Upgrade**: POST accepts optional `selectedAgentIds` array for storing cat selection at thread creation.
 
 ### src/server/api/messages.ts
 
@@ -217,7 +353,7 @@ Last updated: Phase 1 complete, Phase 2 ready.
 
 **Dependencies**: `threadStore`, `messageStore`, `parseMentions`, `executeInvocation`, `extractTaskText`
 
-**Notes**: Returns `{ userMessage, invocation }` on POST. Invocation is null if no mentions found.
+**Notes**: Returns `{ userMessage, invocationTriggered, triggeredMentions }` on POST. Phase 2: invocation is fire-and-forget (non-blocking); results stream via SSE. Phase 3 A2A: all @mentions trigger sequential invocations (not just the first).
 
 ### src/server/api/runtime.ts
 
@@ -227,14 +363,53 @@ Last updated: Phase 1 complete, Phase 2 ready.
 
 - `GET /api/threads/:threadId/runtime` — most recent invocation snapshot
 - `GET /api/threads/:threadId/stream` — SSE endpoint (delegates to sseHandler)
+- `GET /api/threads/:threadId/audit-logs` — event logs with filtering (eventType, agentId, time range, pagination) (Phase 3 Audit)
+- `GET /api/threads/:threadId/audit-stats` — aggregate statistics (invocation counts, avg duration, failures) (Phase 3 Audit)
+- `GET /api/threads/:threadId/workspace-binding` — get workspace binding (Phase 3 Directory)
+- `PUT /api/threads/:threadId/workspace-binding` — create/update workspace binding (Phase 3 Directory)
+- `DELETE /api/threads/:threadId/workspace-binding` — remove workspace binding (Phase 3 Directory)
 
-**Dependencies**: `invocationStore`, `sseHandler`
+**Dependencies**: `invocationStore`, `eventLogStore`, `workspaceBindingStore`, `sseHandler`
+
+### src/server/api/agents.ts
+
+**Purpose**: Agent profile CRUD routes — Phase 3 Config Center + Multi-Provider.
+
+**Routes**:
+
+- `GET /api/agents/providers` — list known providers with model suggestions (Phase 3 Multi-Provider)
+- `GET /api/agents` — list all agent profiles (enabled + disabled), sorted by name
+- `GET /api/agents/:id` — get single agent profile
+- `POST /api/agents` — create new profile (auto-generated id, validates required fields + provider validation, reloads registry)
+- `PUT /api/agents/:id` — update profile (partial update, id immutable, provider validation, reloads registry)
+- `DELETE /api/agents/:id` — delete profile (409 if active invocations exist, reloads registry)
+
+**Dependencies**: `agentProfileStore`, `invocationStore`, `agentRegistry`, `generateId`, `provider-router` (Phase 3)
+
+**Notes**: All mutating endpoints call `agentRegistry.load()` after success to hot-reload the mention resolver. Delete has a safety check against running/queued invocations. Phase 3: POST/PUT reject unknown providers (400) and include soft model-prefix warnings.
+
+### src/server/api/memories.ts (Phase 4 Long-term Memory)
+
+**Purpose**: Memory CRUD routes with filtering, pagination, stats, and uniqueness validation.
+
+**Routes**:
+
+- `GET /api/memories` — list memories with filters (scope, category, threadId, agentId, search keyword, limit/offset pagination)
+- `GET /api/memories/stats` — aggregate stats (total, by scope, by category, recently accessed)
+- `GET /api/memories/:id` — get single memory
+- `POST /api/memories` — create memory (validates category, confidence 0-1, scope-dependent fields, key uniqueness)
+- `PUT /api/memories/:id` — update memory (partial update: value, confidence, tags, category)
+- `DELETE /api/memories/:id` — delete memory
+
+**Dependencies**: `memoryStore`, `generateId`
+
+**Notes**: Key+scope+threadId+agentId uniqueness enforced (409 on duplicate). Scope='thread' requires threadId, scope='agent' requires agentId.
 
 ### src/server/api/index.ts
 
 **Purpose**: Mounts all route groups under `/api`.
 
-**Mounts**: `threadRouter` at `/threads`, `messageRouter` at `/threads/:threadId/messages`, `runtimeRouter` at `/threads/:threadId`
+**Mounts**: `agentRouter` at `/agents`, `threadRouter` at `/threads`, `messageRouter` at `/threads/:threadId/messages`, `runtimeRouter` at `/threads/:threadId`, `memoryRouter` at `/memories` (Phase 4)
 
 ---
 
@@ -256,7 +431,7 @@ Last updated: Phase 1 complete, Phase 2 ready.
 
 **Purpose**: Server entry point. Bootstrap sequence.
 
-**Bootstrap order**: `seedAgentProfiles()` → `agentRegistry.load()` → `app.listen(PORT)`
+**Bootstrap order**: `seedAgentProfiles()` → `seedMemories()` → `agentRegistry.load()` → `app.listen(PORT)`
 
 **Configuration**: `PORT` env var, default 3001.
 
@@ -268,15 +443,25 @@ Last updated: Phase 1 complete, Phase 2 ready.
 
 **Purpose**: Single-file React SPA (CDN React 18, no build step).
 
-**Components**: App, ThreadList, MessageStream, MessageInput, RuntimePanel
+**Components**: App, ThreadList, NewThreadDialog, MessageStream, MessageInput, RuntimePanel, ConfigCenter, AgentForm, AuditPanel (Phase 3), WorkspaceBindingBadge (Phase 3), MemoryPanel (Phase 4), MemoryForm (Phase 4)
 
-**Layout**: Three-column (§4.1) — left: thread list, center: messages + input, right: runtime status
+**Layout**: Three-column (§4.1) — left: thread list, center: messages + input, right: runtime status OR Config Center (gear icon) OR MemoryPanel (brain icon)
 
 **SSE integration**: Opens EventSource to `/api/threads/:id/stream`. Handles `text.delta` → streaming buffer, `invocation.completed` → refresh messages, `invocation.started/failed` → update runtime panel.
 
 **Styling**: Minimal inline CSS, no framework.
 
-**Phase 2 note**: May need adjustments for real streaming latency (StubRunner is near-instant, real LLM will be slower). Consider adding a loading indicator.
+**Phase 2 updates**: Thinking indicator, error banner, auto-scroll.
+
+**Phase 3 — Config Center**: Gear icon in thread list header toggles right panel between RuntimePanel and ConfigCenter. ConfigCenter shows agent list grouped by `family` with provider color dots (purple=Anthropic, green=OpenAI, blue=Google), create/edit/delete actions, and AgentForm with family + displayName fields.
+
+**Phase 3 — NewThreadDialog**: Modal dialog replaces instant thread creation. Shows title input, grouped cat selector with colored provider dots and checkboxes, project directory input, and create/cancel buttons. Posts with `selectedAgentIds`.
+
+**Phase 3 — Multi-Provider Form**: AgentForm provider field upgraded from text input to `<select>` dropdown (anthropic/openai/google). Model field gains `<datalist>` suggestions that change based on selected provider. `MODEL_SUGGESTIONS` constant provides model options per provider.
+
+**Utilities**: `getProviderColor(provider)` — color map for provider dots. `groupByFamily(agents)` — groups agents array by family field. `MODEL_SUGGESTIONS` — model suggestions per provider for datalist. `showMemoryToast(key, category)` — Phase 4 DOM toast notification for auto-extracted memories.
+
+**Phase 4 — MemoryPanel**: Brain icon (🧠) in thread list header toggles MemoryPanel in right panel. Shows stats bar (total/global/thread/agent counts), scope filter tabs, category dropdown + search input, memory cards with confidence bars and edit/delete actions, add button for new memories via MemoryForm modal. SSE listener for `memory.extracted` events shows toast notification.
 
 ---
 
@@ -288,7 +473,9 @@ main.ts
   │     ├── api/index.ts
   │     │     ├── api/threads.ts    → persistence
   │     │     ├── api/messages.ts   → persistence, registry, runtime/orchestrator
-  │     │     └── api/runtime.ts    → persistence, streaming/sse-handler
+  │     │     ├── api/runtime.ts    → persistence, streaming/sse-handler
+  │     │     ├── api/agents.ts     → persistence, registry (Phase 3)
+  │     │     └── api/memories.ts   → persistence (Phase 4)
   │     └── static: client/index.html
   ├── persistence/seed.ts           → persistence/index.ts
   └── registry/agent-registry.ts    → persistence/index.ts
@@ -298,7 +485,13 @@ runtime/orchestrator.ts
   ├── persistence/index.ts
   ├── runtime/event-emitter.ts      → persistence, streaming/event-bus
   ├── runtime/session-manager.ts    → persistence, runtime/event-emitter
-  └── runtime/runner.ts             (StubRunner, Phase 2: AnthropicRunner)
+  ├── runtime/runner.ts             (Runner interface, StubRunner)
+  ├── runtime/provider-router.ts    (routes profile.provider → Runner)
+  │     ├── runtime/cli-runner.ts   (CliRunner — Anthropic/claude CLI)
+  │     ├── runtime/openai-runner.ts (OpenAiRunner — OpenAI/codex CLI)
+  │     └── runtime/gemini-runner.ts (GeminiRunner — Google/gemini CLI)
+  ├── runtime/memory-loader.ts      (Phase 4: scoring, injection, extraction)
+  └── runtime/cli-runner.ts         (CliRunner — real LLM via CLI subprocess)
 
 streaming/sse-handler.ts
   └── streaming/event-bus.ts        (receives events from runtime/event-emitter)

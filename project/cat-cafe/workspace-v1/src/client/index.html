@@ -36,6 +36,13 @@
   .message-meta { font-size: 11px; color: #999; margin-top: 2px; padding: 0 4px; }
   .message.user .message-meta { text-align: right; }
   .streaming-indicator { color: #4a4aaa; font-style: italic; font-size: 13px; padding: 4px 14px; }
+  .thinking-indicator { display: flex; align-items: center; gap: 8px; padding: 10px 14px; color: #888; font-size: 13px; }
+  .thinking-dots { display: inline-flex; gap: 4px; }
+  .thinking-dots span { width: 6px; height: 6px; background: #4a4aaa; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+  .thinking-dots span:nth-child(1) { animation-delay: -0.32s; }
+  .thinking-dots span:nth-child(2) { animation-delay: -0.16s; }
+  @keyframes bounce { 0%,80%,100% { transform: scale(0); } 40% { transform: scale(1); } }
+  .error-banner { background: #f8d7da; color: #721c24; padding: 8px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; max-width: 80%; }
 
   /* Input */
   .message-input-area { padding: 12px 20px; border-top: 1px solid #e0e0e0; background: #fff; }
@@ -62,6 +69,155 @@
 
   /* No thread selected */
   .no-thread { display: flex; align-items: center; justify-content: center; flex: 1; color: #ccc; font-size: 15px; }
+
+  /* Config Center — Phase 3 / 配置中心 */
+  .config-panel { width: 260px; background: #fff; border-left: 1px solid #e0e0e0; flex-shrink: 0; display: flex; flex-direction: column; }
+  .config-header { padding: 16px; font-size: 14px; font-weight: 600; color: #666; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+  .config-content { padding: 12px; font-size: 13px; flex: 1; overflow-y: auto; }
+  .btn-back { background: none; border: none; color: #4a4aaa; cursor: pointer; font-size: 13px; padding: 2px 6px; }
+  .btn-back:hover { text-decoration: underline; }
+  .btn-add-agent { background: #4a4aaa; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; width: 100%; margin-bottom: 12px; }
+  .btn-add-agent:hover { background: #5a5aba; }
+
+  .agent-card { background: #f9f9f9; border: 1px solid #e8e8e8; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+  .agent-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .agent-card-name { font-weight: 600; font-size: 13px; color: #333; }
+  .agent-card-model { font-size: 11px; color: #888; margin-bottom: 6px; }
+  .agent-card-actions { display: flex; gap: 6px; align-items: center; }
+  .agent-card-actions button { background: none; border: none; cursor: pointer; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+  .btn-edit { color: #4a4aaa; }
+  .btn-edit:hover { background: #eef; }
+  .btn-delete { color: #c33; }
+  .btn-delete:hover { background: #fee; }
+  .badge-enabled { display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; }
+  .badge-enabled.on { background: #d4edda; color: #155724; }
+  .badge-enabled.off { background: #e0e0e0; color: #666; }
+
+  .agent-form label { display: block; font-size: 12px; color: #666; margin-bottom: 2px; margin-top: 10px; }
+  .agent-form label:first-child { margin-top: 0; }
+  .agent-form input, .agent-form textarea { width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; }
+  .agent-form input:focus, .agent-form textarea:focus { border-color: #4a4aaa; outline: none; }
+  .agent-form textarea { min-height: 80px; resize: vertical; }
+  .agent-form .checkbox-row { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+  .agent-form .checkbox-row input { width: auto; }
+  .agent-form-buttons { display: flex; gap: 8px; margin-top: 14px; }
+  .agent-form-buttons button { flex: 1; padding: 6px 10px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid #ddd; }
+  .btn-save { background: #4a4aaa; color: #fff; border-color: #4a4aaa; }
+  .btn-save:hover { background: #5a5aba; }
+  .btn-cancel { background: #f5f5f5; color: #666; }
+  .btn-cancel:hover { background: #eee; }
+  .form-error { color: #c33; font-size: 12px; margin-top: 6px; }
+  .config-error { color: #c33; font-size: 12px; margin-bottom: 8px; background: #fee; padding: 6px 10px; border-radius: 6px; }
+
+  .btn-gear { background: none; border: none; color: #aaa; cursor: pointer; font-size: 16px; padding: 2px 6px; line-height: 1; }
+  .btn-gear:hover { color: #fff; }
+  .btn-gear.active { color: #4a4aaa; }
+
+  /* Provider color dot / 提供商颜色点 */
+  .provider-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; flex-shrink: 0; }
+
+  /* Family group headers in Config Center / 配置中心品种分组 */
+  .agent-family-header { font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 0 4px 0; border-top: 1px solid #eee; margin-top: 8px; }
+  .agent-family-header:first-child { border-top: none; margin-top: 0; }
+
+  /* Modal overlay / 弹窗遮罩 */
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .modal-dialog { background: #fff; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); max-width: 480px; width: 90%; max-height: 75vh; display: flex; flex-direction: column; }
+  .modal-header { padding: 18px 20px; border-bottom: 1px solid #e0e0e0; font-size: 16px; font-weight: 600; color: #333; display: flex; justify-content: space-between; align-items: center; }
+  .modal-close { background: none; border: none; font-size: 20px; color: #999; cursor: pointer; padding: 0 4px; }
+  .modal-close:hover { color: #333; }
+  .modal-body { padding: 16px 20px; flex: 1; overflow-y: auto; }
+  .modal-footer { padding: 14px 20px; border-top: 1px solid #e0e0e0; display: flex; gap: 8px; justify-content: flex-end; }
+  .modal-footer button { padding: 8px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid #ddd; }
+  .btn-primary { background: #4a4aaa; color: #fff; border-color: #4a4aaa; }
+  .btn-primary:hover { background: #5a5aba; }
+  .btn-secondary { background: #f5f5f5; color: #666; }
+  .btn-secondary:hover { background: #eee; }
+
+  /* New Thread Dialog — cat selector / 新建对话猫选择器 */
+  .dialog-section { margin-bottom: 16px; }
+  .dialog-section-label { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 8px; display: block; }
+  .dialog-input { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; }
+  .dialog-input:focus { border-color: #4a4aaa; outline: none; }
+  .cat-family-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.3px; margin: 10px 0 4px 0; display: flex; align-items: center; gap: 4px; }
+  .cat-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 16px; border: 1.5px solid #e0e0e0; cursor: pointer; font-size: 12px; margin: 2px 4px 2px 0; transition: all 0.15s; user-select: none; }
+  .cat-chip:hover { border-color: #4a4aaa; background: #f8f8ff; }
+  .cat-chip.selected { border-color: #4a4aaa; background: #eef; }
+  .cat-chip .provider-dot { margin-right: 2px; }
+
+  /* Audit Panel / 审计面板 — Phase 3 */
+  .audit-panel { width: 260px; background: #fff; border-left: 1px solid #e0e0e0; flex-shrink: 0; display: flex; flex-direction: column; }
+  .audit-header { padding: 16px; font-size: 14px; font-weight: 600; color: #666; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+  .audit-content { padding: 12px; font-size: 13px; flex: 1; overflow-y: auto; }
+  .audit-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .audit-filters select { padding: 4px 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; background: #fff; }
+  .audit-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .audit-stat-card { background: #f9f9f9; border: 1px solid #e8e8e8; border-radius: 6px; padding: 8px 10px; text-align: center; }
+  .audit-stat-value { font-size: 18px; font-weight: 700; color: #4a4aaa; }
+  .audit-stat-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.3px; }
+  .audit-event-item { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; font-size: 11px; }
+  .audit-event-item:last-child { border-bottom: none; }
+  .audit-event-type { font-weight: 600; color: #555; }
+  .audit-event-time { color: #999; font-size: 10px; }
+  .audit-event-detail { color: #777; font-size: 10px; margin-top: 2px; }
+  .audit-load-more { text-align: center; padding: 8px; }
+  .audit-load-more button { background: none; border: 1px solid #ddd; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; color: #4a4aaa; }
+  .audit-load-more button:hover { background: #f8f8ff; }
+
+  /* Tab buttons for right panel / 右侧面板标签按钮 */
+  .panel-tabs { display: flex; border-bottom: 1px solid #e0e0e0; }
+  .panel-tab { flex: 1; padding: 8px 4px; text-align: center; font-size: 11px; cursor: pointer; border: none; background: none; color: #888; border-bottom: 2px solid transparent; }
+  .panel-tab:hover { color: #555; }
+  .panel-tab.active { color: #4a4aaa; border-bottom-color: #4a4aaa; font-weight: 600; }
+
+  /* Memory Panel — Phase 4 / 记忆面板 */
+  .memory-panel { width: 260px; background: #fff; border-left: 1px solid #e0e0e0; flex-shrink: 0; display: flex; flex-direction: column; }
+  .memory-header { padding: 16px; font-size: 14px; font-weight: 600; color: #666; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+  .memory-content { padding: 12px; font-size: 13px; flex: 1; overflow-y: auto; }
+  .memory-stat-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .memory-stat-chip { background: #f0f0ff; color: #4a4aaa; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+  .memory-scope-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+  .memory-scope-tab { padding: 3px 8px; border: 1px solid #ddd; border-radius: 12px; font-size: 10px; cursor: pointer; background: #fff; color: #666; }
+  .memory-scope-tab.active { background: #4a4aaa; color: #fff; border-color: #4a4aaa; }
+  .memory-card { background: #f9f9f9; border: 1px solid #e8e8e8; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; }
+  .memory-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+  .memory-card-key { font-weight: 600; font-size: 12px; color: #333; }
+  .memory-card-cat { font-size: 9px; padding: 1px 5px; border-radius: 8px; font-weight: 600; }
+  .memory-card-cat.fact { background: #e3f2fd; color: #1565c0; }
+  .memory-card-cat.preference { background: #f3e5f5; color: #7b1fa2; }
+  .memory-card-cat.context { background: #e8f5e9; color: #2e7d32; }
+  .memory-card-cat.user-profile { background: #fff3e0; color: #e65100; }
+  .memory-card-cat.session-insight { background: #e0f7fa; color: #00695c; }
+  .memory-card-cat.agent-state { background: #fce4ec; color: #c62828; }
+  .memory-card-value { font-size: 11px; color: #555; line-height: 1.4; margin-bottom: 4px; }
+  .memory-card-meta { font-size: 9px; color: #aaa; display: flex; justify-content: space-between; }
+  .memory-card-actions { display: flex; gap: 4px; }
+  .memory-card-actions button { background: none; border: none; cursor: pointer; font-size: 10px; padding: 1px 4px; border-radius: 3px; }
+  .memory-confidence-bar { height: 3px; background: #e0e0e0; border-radius: 2px; margin-top: 3px; }
+  .memory-confidence-fill { height: 100%; background: #4a4aaa; border-radius: 2px; }
+  .memory-filters { display: flex; gap: 6px; margin-bottom: 10px; }
+  .memory-filters select, .memory-filters input { padding: 3px 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; }
+  .memory-filters input { flex: 1; }
+  .memory-toast { position: fixed; bottom: 20px; right: 20px; background: #4a4aaa; color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 13px; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.2); opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease; }
+  .memory-toast.visible { opacity: 1; transform: translateY(0); }
+
+  /* Memory form / 记忆表单 */
+  .memory-form label { display: block; font-size: 11px; color: #666; margin-bottom: 2px; margin-top: 8px; }
+  .memory-form label:first-child { margin-top: 0; }
+  .memory-form input, .memory-form select, .memory-form textarea { width: 100%; padding: 5px 7px; border: 1px solid #ddd; border-radius: 5px; font-size: 12px; font-family: inherit; }
+  .memory-form textarea { min-height: 60px; resize: vertical; }
+  .memory-form-actions { display: flex; gap: 6px; margin-top: 10px; }
+  .memory-form-actions button { flex: 1; padding: 6px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; }
+  .btn-mem-save { background: #4a4aaa; color: #fff; }
+  .btn-mem-save:hover { background: #5a5aba; }
+  .btn-mem-cancel { background: #e0e0e0; color: #555; }
+  .btn-mem-cancel:hover { background: #d0d0d0; }
+
+  /* Workspace binding badge / 工作空间绑定标签 */
+  .workspace-badge { display: flex; align-items: center; gap: 4px; padding: 4px 8px; background: #f0f4f8; border: 1px solid #d0dde8; border-radius: 4px; font-size: 11px; color: #456; margin: 0 20px 8px 20px; }
+  .workspace-badge-path { font-family: monospace; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .workspace-badge-edit { background: none; border: none; color: #4a4aaa; cursor: pointer; font-size: 10px; flex-shrink: 0; }
+  .workspace-badge-edit:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -85,39 +241,198 @@ async function api(path, opts) {
   return res.json();
 }
 
+/**
+ * Show a toast notification when a memory is auto-extracted.
+ * 当记忆被自动提取时显示通知。
+ */
+function showMemoryToast(key, category) {
+  const toast = document.createElement('div');
+  toast.className = 'memory-toast';
+  toast.textContent = '\uD83E\uDDE0 Memory extracted / 记忆已提取: [' + category + '] ' + key;
+  document.body.appendChild(toast);
+  // Force reflow then add visible class for transition
+  requestAnimationFrame(() => { toast.classList.add('visible'); });
+  setTimeout(() => {
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 400);
+  }, 3500);
+}
+
+/** Provider → color mapping / 提供商颜色映射 */
+function getProviderColor(provider) {
+  return { anthropic: '#9d4edd', openai: '#10b981', google: '#3b82f6' }[provider] || '#999';
+}
+
+/** Model suggestions per provider / 每个提供商的模型建议 */
+const MODEL_SUGGESTIONS = {
+  anthropic: ['claude-sonnet-4-6', 'claude-opus-4-6', 'claude-haiku-4-5-20251001'],
+  openai: ['gpt-4o', 'gpt-4o-mini', 'o3-mini'],
+  google: ['gemini-2.0-flash', 'gemini-2.5-pro'],
+};
+
+/** Group agents by family / 按品种分组 */
+function groupByFamily(agents) {
+  const groups = {};
+  for (const a of agents) {
+    const fam = a.family || 'other';
+    if (!groups[fam]) groups[fam] = [];
+    groups[fam].push(a);
+  }
+  return groups;
+}
+
+// ---------------------------------------------------------------------------
+// NewThreadDialog — modal for creating threads with cat + project selection
+// 新建对话弹窗 — 选择猫 + 项目目录
+// ---------------------------------------------------------------------------
+function NewThreadDialog({ onConfirm, onCancel }) {
+  const [title, setTitle] = useState('');
+  const [projectPath, setProjectPath] = useState('');
+  const [selectedCats, setSelectedCats] = useState(new Set());
+  const [agents, setAgents] = useState([]);
+
+  useEffect(() => {
+    api('/agents').then(list => {
+      if (Array.isArray(list)) setAgents(list.filter(a => a.enabled));
+    });
+  }, []);
+
+  function toggleCat(catId) {
+    setSelectedCats(prev => {
+      const next = new Set(prev);
+      if (next.has(catId)) next.delete(catId); else next.add(catId);
+      return next;
+    });
+  }
+
+  function handleCreate() {
+    onConfirm({
+      title: title.trim() || 'New Thread',
+      workspacePath: projectPath.trim() || undefined,
+      selectedAgentIds: Array.from(selectedCats),
+    });
+  }
+
+  const grouped = groupByFamily(agents);
+
+  return React.createElement('div', { className: 'modal-overlay', onClick: onCancel },
+    React.createElement('div', { className: 'modal-dialog', onClick: e => e.stopPropagation() },
+      React.createElement('div', { className: 'modal-header' },
+        'New Thread / 新建对话',
+        React.createElement('button', { className: 'modal-close', onClick: onCancel }, '\u00D7'),
+      ),
+      React.createElement('div', { className: 'modal-body' },
+        // Title / 标题
+        React.createElement('div', { className: 'dialog-section' },
+          React.createElement('label', { className: 'dialog-section-label' }, 'Title / 标题'),
+          React.createElement('input', {
+            className: 'dialog-input', value: title,
+            onChange: e => setTitle(e.target.value),
+            placeholder: 'e.g. Project Discussion',
+          }),
+        ),
+        // Cat selector / 选择猫
+        React.createElement('div', { className: 'dialog-section' },
+          React.createElement('label', { className: 'dialog-section-label' }, 'Select Cats / 选择猫猫 (optional)'),
+          Object.entries(grouped).map(function([family, cats]) {
+            return React.createElement('div', { key: family },
+              React.createElement('div', { className: 'cat-family-label' },
+                React.createElement('span', {
+                  className: 'provider-dot',
+                  style: { background: getProviderColor(cats[0].provider) },
+                }),
+                family + ' \u00B7 ' + cats[0].provider,
+              ),
+              React.createElement('div', { style: { display: 'flex', flexWrap: 'wrap' } },
+                cats.map(function(cat) {
+                  return React.createElement('span', {
+                    key: cat.id,
+                    className: 'cat-chip' + (selectedCats.has(cat.id) ? ' selected' : ''),
+                    onClick: function() { toggleCat(cat.id); },
+                  },
+                    React.createElement('span', {
+                      className: 'provider-dot',
+                      style: { background: getProviderColor(cat.provider) },
+                    }),
+                    cat.name + (cat.displayName ? ' (' + cat.displayName + ')' : ''),
+                  );
+                }),
+              ),
+            );
+          }),
+        ),
+        // Project path / 项目目录
+        React.createElement('div', { className: 'dialog-section' },
+          React.createElement('label', { className: 'dialog-section-label' }, 'Project Directory / 项目目录 (optional)'),
+          React.createElement('input', {
+            className: 'dialog-input', value: projectPath,
+            onChange: e => setProjectPath(e.target.value),
+            placeholder: '/path/to/project',
+          }),
+        ),
+      ),
+      React.createElement('div', { className: 'modal-footer' },
+        React.createElement('button', { className: 'btn-secondary', onClick: onCancel }, 'Cancel / 取消'),
+        React.createElement('button', { className: 'btn-primary', onClick: handleCreate }, 'Create / 创建'),
+      ),
+    ),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // ThreadList
 // ---------------------------------------------------------------------------
-function ThreadList({ currentId, onSelect, refreshKey }) {
+function ThreadList({ currentId, onSelect, refreshKey, onGearClick, gearActive, onBrainClick, brainActive }) {
   const [threads, setThreads] = useState([]);
+  const [showDialog, setShowDialog] = useState(false);
 
   useEffect(() => {
     api('/threads').then(setThreads);
   }, [refreshKey]);
 
-  async function createThread() {
+  async function handleCreateThread(threadData) {
     const t = await api('/threads', {
       method: 'POST',
-      body: JSON.stringify({ title: 'New Thread' }),
+      body: JSON.stringify(threadData),
     });
     setThreads(prev => [t, ...prev]);
     onSelect(t.id);
+    setShowDialog(false);
   }
 
-  return React.createElement('div', { className: 'thread-list' },
-    React.createElement('div', { className: 'thread-list-header' },
-      React.createElement('span', null, 'THREADS'),
-      React.createElement('button', { className: 'btn-new-thread', onClick: createThread }, '+ New'),
+  return React.createElement(React.Fragment, null,
+    React.createElement('div', { className: 'thread-list' },
+      React.createElement('div', { className: 'thread-list-header' },
+        React.createElement('span', null, 'THREADS'),
+        React.createElement('div', { style: { display: 'flex', gap: '6px', alignItems: 'center' } },
+          React.createElement('button', {
+            className: 'btn-gear' + (brainActive ? ' active' : ''),
+            onClick: onBrainClick,
+            title: 'Memory Panel / 记忆面板',
+            style: { fontSize: '16px' },
+          }, '\uD83E\uDDE0'),
+          React.createElement('button', {
+            className: 'btn-gear' + (gearActive ? ' active' : ''),
+            onClick: onGearClick,
+            title: 'Config Center / 配置中心',
+          }, '\u2699'),
+          React.createElement('button', { className: 'btn-new-thread', onClick: () => setShowDialog(true) }, '+ New'),
+        ),
+      ),
+      React.createElement('div', { className: 'thread-items' },
+        threads.map(t =>
+          React.createElement('div', {
+            key: t.id,
+            className: 'thread-item' + (t.id === currentId ? ' active' : ''),
+            onClick: () => onSelect(t.id),
+          }, t.title)
+        )
+      ),
     ),
-    React.createElement('div', { className: 'thread-items' },
-      threads.map(t =>
-        React.createElement('div', {
-          key: t.id,
-          className: 'thread-item' + (t.id === currentId ? ' active' : ''),
-          onClick: () => onSelect(t.id),
-        }, t.title)
-      )
-    )
+    showDialog ? React.createElement(NewThreadDialog, {
+      onConfirm: handleCreateThread,
+      onCancel: () => setShowDialog(false),
+    }) : null,
   );
 }
 
@@ -128,6 +443,8 @@ function MessageStream({ threadId }) {
   const [messages, setMessages] = useState([]);
   const [streaming, setStreaming] = useState('');
   const [streamingAgent, setStreamingAgent] = useState('');
+  const [thinking, setThinking] = useState(false);  // Phase 2: thinking state before text arrives / 文本到达前的思考状态
+  const [lastError, setLastError] = useState('');     // Phase 2: error display / 错误显示
   const scrollRef = useRef(null);
 
   // Load messages from backend
@@ -139,6 +456,8 @@ function MessageStream({ threadId }) {
   useEffect(() => {
     setMessages([]);
     setStreaming('');
+    setThinking(false);
+    setLastError('');
     loadMessages();
   }, [threadId, loadMessages]);
 
@@ -151,12 +470,15 @@ function MessageStream({ threadId }) {
     es.addEventListener('invocation.started', (e) => {
       const d = JSON.parse(e.data);
       setStreamingAgent(d.agentName || 'Agent');
+      setThinking(true);   // Show thinking indicator / 显示思考指示器
+      setLastError('');
       buf = '';
       setStreaming('');
     });
 
     es.addEventListener('text.delta', (e) => {
       const d = JSON.parse(e.data);
+      setThinking(false);  // First text arrived, stop thinking / 首个文本到达，停止思考
       buf += d.chunk;
       setStreaming(buf);
     });
@@ -164,16 +486,31 @@ function MessageStream({ threadId }) {
     es.addEventListener('invocation.completed', () => {
       setStreaming('');
       setStreamingAgent('');
+      setThinking(false);
       buf = '';
       // Refresh messages to get the final persisted reply.
       loadMessages();
     });
 
-    es.addEventListener('invocation.failed', () => {
+    es.addEventListener('invocation.failed', (e) => {
       setStreaming('');
       setStreamingAgent('');
+      setThinking(false);
       buf = '';
+      // Show error briefly / 短暂显示错误
+      try {
+        const d = JSON.parse(e.data);
+        setLastError(d.errorMessage || d.errorCode || 'Invocation failed');
+      } catch { setLastError('Invocation failed'); }
       loadMessages();
+    });
+
+    // Phase 4: Memory extraction toast / Phase 4：记忆提取通知
+    es.addEventListener('memory.extracted', (e) => {
+      try {
+        const d = JSON.parse(e.data);
+        showMemoryToast(d.key || 'unknown', d.category || 'fact');
+      } catch { /* ignore parse errors */ }
     });
 
     return () => es.close();
@@ -184,14 +521,14 @@ function MessageStream({ threadId }) {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, streaming]);
+  }, [messages, streaming, thinking]);
 
   if (!threadId) {
     return React.createElement('div', { className: 'no-thread' }, 'Select or create a thread to begin');
   }
 
   return React.createElement('div', { className: 'message-stream', ref: scrollRef },
-    messages.length === 0 && !streaming
+    messages.length === 0 && !streaming && !thinking
       ? React.createElement('div', { className: 'message-empty' }, 'No messages yet. Send a message with @cat to get started.')
       : null,
     messages.map(m =>
@@ -202,11 +539,27 @@ function MessageStream({ threadId }) {
         ),
       )
     ),
+    // Phase 2: thinking indicator (waiting for first token) / 思考指示器（等待首个 token）
+    thinking && !streaming
+      ? React.createElement('div', { className: 'thinking-indicator' },
+          React.createElement('div', { className: 'thinking-dots' },
+            React.createElement('span'),
+            React.createElement('span'),
+            React.createElement('span'),
+          ),
+          streamingAgent + ' is thinking...',
+        )
+      : null,
+    // Streaming text / 流式文本
     streaming
       ? React.createElement('div', { className: 'message assistant' },
           React.createElement('div', { className: 'message-bubble' }, streaming),
           React.createElement('div', { className: 'streaming-indicator' }, streamingAgent + ' is typing...'),
         )
+      : null,
+    // Phase 2: error banner / 错误横幅
+    lastError
+      ? React.createElement('div', { className: 'error-banner' }, lastError)
       : null,
   );
 }
@@ -254,7 +607,7 @@ function MessageInput({ threadId, onSent }) {
 // ---------------------------------------------------------------------------
 // RuntimePanel
 // ---------------------------------------------------------------------------
-function RuntimePanel({ threadId }) {
+function RuntimePanel({ threadId, onSwitchToAudit }) {
   const [inv, setInv] = useState(null);
 
   // Poll runtime status when thread changes
@@ -308,8 +661,54 @@ function RuntimePanel({ threadId }) {
     return () => es.close();
   }, [threadId, loadRuntime]);
 
+  // Session chain state / Session 链状态
+  const [sessionChain, setSessionChain] = useState([]);
+  const [handoffNotice, setHandoffNotice] = useState(null);
+
+  // Load session chain when agent is known. / 当 agent 已知时加载 session 链。
+  const currentAgentId = inv?.targetAgentId;
+  const loadSessionChain = useCallback(() => {
+    if (!threadId || !currentAgentId) return;
+    api('/threads/' + threadId + '/agents/' + currentAgentId + '/session-chain')
+      .then(r => setSessionChain(r.chain || []))
+      .catch(() => setSessionChain([]));
+  }, [threadId, currentAgentId]);
+
+  useEffect(() => {
+    loadSessionChain();
+  }, [loadSessionChain]);
+
+  // Listen for session handoff SSE events. / 监听 session 交接 SSE 事件。
+  useEffect(() => {
+    if (!threadId) return;
+    const es = new EventSource(API + '/threads/' + threadId + '/stream');
+
+    es.addEventListener('session.handoff', (e) => {
+      const d = JSON.parse(e.data);
+      setHandoffNotice('Session context archived → new session ' + (d.newSessionId || '').substring(0, 8));
+      // Reload session chain after handoff.
+      setTimeout(() => loadSessionChain(), 500);
+      // Clear notice after 5s.
+      setTimeout(() => setHandoffNotice(null), 5000);
+    });
+
+    es.addEventListener('session.sealed', () => {
+      setTimeout(() => loadSessionChain(), 300);
+    });
+
+    return () => es.close();
+  }, [threadId, loadSessionChain]);
+
   return React.createElement('div', { className: 'runtime-panel' },
-    React.createElement('div', { className: 'runtime-header' }, 'Runtime Status'),
+    React.createElement('div', { className: 'runtime-header' },
+      'Runtime Status',
+      onSwitchToAudit ? React.createElement('button', {
+        className: 'btn-back',
+        onClick: onSwitchToAudit,
+        title: 'Audit Log / 审计日志',
+        style: { fontSize: '12px' },
+      }, 'Audit \u2192') : null,
+    ),
     React.createElement('div', { className: 'runtime-content' },
       !threadId
         ? React.createElement('div', { className: 'runtime-empty' }, 'No thread selected')
@@ -348,6 +747,794 @@ function RuntimePanel({ threadId }) {
             ) : null,
           ),
     ),
+    // Handoff notice banner / Handoff 通知条
+    handoffNotice ? React.createElement('div', {
+      className: 'handoff-notice',
+      style: {
+        padding: '8px 12px',
+        margin: '8px 12px',
+        background: '#e8f4fd',
+        border: '1px solid #b3d9f2',
+        borderRadius: '4px',
+        fontSize: '12px',
+        color: '#1a6fa8',
+      },
+    }, handoffNotice) : null,
+    // Session Chain section / Session 链区域
+    sessionChain.length > 0 ? React.createElement('div', {
+      className: 'session-chain-section',
+      style: {
+        margin: '12px',
+        paddingTop: '12px',
+        borderTop: '1px solid #e0e0e0',
+      },
+    },
+      React.createElement('div', {
+        style: { fontSize: '12px', fontWeight: 600, marginBottom: '8px', color: '#555' },
+      }, 'Session Chain (' + sessionChain.length + ')'),
+      ...sessionChain.slice().reverse().map((s) =>
+        React.createElement('div', {
+          key: s.id,
+          style: {
+            padding: '6px 8px',
+            marginBottom: '4px',
+            fontSize: '11px',
+            borderRadius: '4px',
+            background: s.status === 'active' ? '#f0f8f0' : '#f5f5f5',
+            border: s.status === 'active' ? '1px solid #c0e0c0' : '1px solid #e0e0e0',
+          },
+        },
+          React.createElement('div', {
+            style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+          },
+            React.createElement('span', {
+              style: {
+                fontWeight: s.status === 'active' ? 600 : 400,
+                color: s.status === 'active' ? '#2a7a2a' : '#888',
+              },
+            }, s.id.substring(0, 8) + '...'),
+            React.createElement('span', {
+              style: {
+                fontSize: '10px',
+                padding: '1px 6px',
+                borderRadius: '3px',
+                background: s.status === 'active' ? '#2a7a2a' : '#aaa',
+                color: '#fff',
+              },
+            }, s.status),
+          ),
+          React.createElement('div', {
+            style: { color: '#999', fontSize: '10px', marginTop: '2px' },
+          },
+            (s.messageCount || 0) + ' msgs',
+            s.sealedAt ? ' · sealed ' + new Date(s.sealedAt).toLocaleTimeString() : '',
+          ),
+          // Expandable summary preview / 可展开的摘要预览
+          s.summaryPreview ? React.createElement('details', {
+            style: { marginTop: '4px' },
+          },
+            React.createElement('summary', {
+              style: { fontSize: '10px', color: '#777', cursor: 'pointer' },
+            }, 'Context Summary'),
+            React.createElement('div', {
+              style: {
+                fontSize: '10px',
+                color: '#666',
+                maxHeight: '80px',
+                overflowY: 'auto',
+                marginTop: '4px',
+                padding: '4px 6px',
+                background: '#fafafa',
+                borderRadius: '3px',
+                whiteSpace: 'pre-wrap',
+              },
+            }, s.summaryPreview),
+          ) : null,
+        ),
+      ),
+    ) : null,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// AgentForm — create/edit agent profile / 创建/编辑 Agent 配置
+// ---------------------------------------------------------------------------
+function AgentForm({ agent, mode, onSave, onCancel }) {
+  const [name, setName] = useState(agent ? agent.name : '');
+  const [family, setFamily] = useState(agent ? (agent.family || '') : '');
+  const [displayName, setDisplayName] = useState(agent ? (agent.displayName || '') : '');
+  const [provider, setProvider] = useState(agent ? agent.provider : 'anthropic');
+  const [model, setModel] = useState(agent ? agent.model : '');
+  const [persona, setPersona] = useState(agent ? agent.persona : '');
+  const [enabled, setEnabled] = useState(agent ? agent.enabled : true);
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!name.trim() || !provider.trim() || !model.trim() || !persona.trim()) {
+      setError('All fields are required / 所有字段必填');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      const body = {
+        name: name.trim(), provider: provider.trim(), model: model.trim(),
+        persona: persona.trim(), enabled,
+        family: family.trim() || undefined,
+        displayName: displayName.trim() || undefined,
+      };
+      let result;
+      if (mode === 'create') {
+        result = await api('/agents', { method: 'POST', body: JSON.stringify(body) });
+      } else {
+        result = await api('/agents/' + agent.id, { method: 'PUT', body: JSON.stringify(body) });
+      }
+      if (result.error) {
+        setError(result.error);
+      } else {
+        onSave(result);
+      }
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return React.createElement('form', { className: 'agent-form', onSubmit: handleSubmit },
+    mode === 'edit'
+      ? React.createElement(React.Fragment, null,
+          React.createElement('label', null, 'ID'),
+          React.createElement('input', { value: agent.id, disabled: true }),
+        )
+      : null,
+    React.createElement('label', null, 'Name / 名称 *'),
+    React.createElement('input', { value: name, onChange: e => setName(e.target.value), placeholder: 'e.g. Maine' }),
+    React.createElement('label', null, 'Family / 品种'),
+    React.createElement('input', { value: family, onChange: e => setFamily(e.target.value), placeholder: 'e.g. maine, siamese' }),
+    React.createElement('label', null, 'Display Name / 显示名称'),
+    React.createElement('input', { value: displayName, onChange: e => setDisplayName(e.target.value), placeholder: 'e.g. Sonnet, Opus' }),
+    React.createElement('label', null, 'Provider / 提供商 *'),
+    React.createElement('select', { value: provider, onChange: e => { setProvider(e.target.value); setModel(''); } },
+      React.createElement('option', { value: 'anthropic' }, 'Anthropic'),
+      React.createElement('option', { value: 'openai' }, 'OpenAI'),
+      React.createElement('option', { value: 'google' }, 'Google'),
+    ),
+    React.createElement('label', null, 'Model / 模型 *'),
+    React.createElement('input', { value: model, onChange: e => setModel(e.target.value), placeholder: MODEL_SUGGESTIONS[provider] ? MODEL_SUGGESTIONS[provider][0] : '', list: 'model-suggestions-' + provider }),
+    React.createElement('datalist', { id: 'model-suggestions-anthropic' },
+      React.createElement('option', { value: 'claude-sonnet-4-6' }),
+      React.createElement('option', { value: 'claude-opus-4-6' }),
+      React.createElement('option', { value: 'claude-haiku-4-5-20251001' }),
+    ),
+    React.createElement('datalist', { id: 'model-suggestions-openai' },
+      React.createElement('option', { value: 'gpt-4o' }),
+      React.createElement('option', { value: 'gpt-4o-mini' }),
+      React.createElement('option', { value: 'o3-mini' }),
+    ),
+    React.createElement('datalist', { id: 'model-suggestions-google' },
+      React.createElement('option', { value: 'gemini-2.0-flash' }),
+      React.createElement('option', { value: 'gemini-2.5-pro' }),
+    ),
+    React.createElement('label', null, 'Persona / 人格设定 *'),
+    React.createElement('textarea', { value: persona, onChange: e => setPersona(e.target.value), placeholder: 'System prompt describing the agent personality...' }),
+    React.createElement('div', { className: 'checkbox-row' },
+      React.createElement('input', { type: 'checkbox', checked: enabled, onChange: e => setEnabled(e.target.checked), id: 'agent-enabled' }),
+      React.createElement('label', { htmlFor: 'agent-enabled', style: { margin: 0 } }, 'Enabled / 启用'),
+    ),
+    error ? React.createElement('div', { className: 'form-error' }, error) : null,
+    React.createElement('div', { className: 'agent-form-buttons' },
+      React.createElement('button', { type: 'button', className: 'btn-cancel', onClick: onCancel }, 'Cancel / 取消'),
+      React.createElement('button', { type: 'submit', className: 'btn-save', disabled: saving }, saving ? '...' : (mode === 'create' ? 'Create / 创建' : 'Save / 保存')),
+    ),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ConfigCenter — agent profile management / Agent 配置管理
+// ---------------------------------------------------------------------------
+function ConfigCenter({ onClose }) {
+  const [agents, setAgents] = useState([]);
+  const [formMode, setFormMode] = useState(null); // null | 'create' | 'edit'
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [error, setError] = useState('');
+
+  const loadAgents = useCallback(() => {
+    api('/agents').then(data => {
+      if (Array.isArray(data)) setAgents(data);
+    });
+  }, []);
+
+  useEffect(() => { loadAgents(); }, [loadAgents]);
+
+  function handleEdit(agent) {
+    setSelectedAgent(agent);
+    setFormMode('edit');
+    setError('');
+  }
+
+  function handleCreate() {
+    setSelectedAgent(null);
+    setFormMode('create');
+    setError('');
+  }
+
+  async function handleDelete(agent) {
+    if (!confirm('Delete "' + agent.name + '"? This cannot be undone.\n删除 "' + agent.name + '"？此操作不可撤销。')) return;
+    try {
+      const result = await api('/agents/' + agent.id, { method: 'DELETE' });
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setError('');
+        loadAgents();
+      }
+    } catch (err) {
+      setError(String(err));
+    }
+  }
+
+  async function handleToggleEnabled(agent) {
+    try {
+      await api('/agents/' + agent.id, {
+        method: 'PUT',
+        body: JSON.stringify({ enabled: !agent.enabled }),
+      });
+      loadAgents();
+    } catch (err) {
+      setError(String(err));
+    }
+  }
+
+  function handleFormSave() {
+    setFormMode(null);
+    setSelectedAgent(null);
+    loadAgents();
+  }
+
+  function handleFormCancel() {
+    setFormMode(null);
+    setSelectedAgent(null);
+  }
+
+  // Form view / 表单视图
+  if (formMode) {
+    return React.createElement('div', { className: 'config-panel' },
+      React.createElement('div', { className: 'config-header' },
+        formMode === 'create' ? 'New Agent / 新建 Agent' : 'Edit Agent / 编辑 Agent',
+      ),
+      React.createElement('div', { className: 'config-content' },
+        React.createElement(AgentForm, {
+          agent: selectedAgent,
+          mode: formMode,
+          onSave: handleFormSave,
+          onCancel: handleFormCancel,
+        }),
+      ),
+    );
+  }
+
+  // List view — grouped by family / 列表视图 — 按品种分组
+  const grouped = groupByFamily(agents);
+
+  return React.createElement('div', { className: 'config-panel' },
+    React.createElement('div', { className: 'config-header' },
+      'Config Center / 配置中心',
+      React.createElement('button', { className: 'btn-back', onClick: onClose }, '\u2190 Runtime'),
+    ),
+    React.createElement('div', { className: 'config-content' },
+      React.createElement('button', { className: 'btn-add-agent', onClick: handleCreate }, '+ New Agent / 新建 Agent'),
+      error ? React.createElement('div', { className: 'config-error' }, error) : null,
+      Object.entries(grouped).map(function([family, familyAgents]) {
+        return React.createElement('div', { key: family },
+          React.createElement('div', { className: 'agent-family-header' },
+            React.createElement('span', {
+              className: 'provider-dot',
+              style: { background: getProviderColor(familyAgents[0].provider) },
+            }),
+            family + ' \u00B7 ' + familyAgents[0].provider,
+          ),
+          familyAgents.map(function(a) {
+            return React.createElement('div', { key: a.id, className: 'agent-card' },
+              React.createElement('div', { className: 'agent-card-header' },
+                React.createElement('span', { style: { display: 'flex', alignItems: 'center', gap: '4px' } },
+                  React.createElement('span', {
+                    className: 'provider-dot',
+                    style: { background: getProviderColor(a.provider) },
+                  }),
+                  React.createElement('span', { className: 'agent-card-name' },
+                    a.name + (a.displayName ? ' (' + a.displayName + ')' : ''),
+                  ),
+                ),
+                React.createElement('span', {
+                  className: 'badge-enabled ' + (a.enabled ? 'on' : 'off'),
+                  style: { cursor: 'pointer' },
+                  title: 'Click to toggle / 点击切换',
+                  onClick: function() { handleToggleEnabled(a); },
+                }, a.enabled ? 'ON' : 'OFF'),
+              ),
+              React.createElement('div', { className: 'agent-card-model' }, a.model),
+              React.createElement('div', { className: 'agent-card-actions' },
+                React.createElement('button', { className: 'btn-edit', onClick: function() { handleEdit(a); } }, 'Edit / 编辑'),
+                React.createElement('button', { className: 'btn-delete', onClick: function() { handleDelete(a); } }, 'Delete / 删除'),
+              ),
+            );
+          }),
+        );
+      }),
+    ),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// AuditPanel — activity log with filtering / 审计面板 — 带过滤的活动日志
+// Phase 3 Audit Tools
+// ---------------------------------------------------------------------------
+function AuditPanel({ threadId, onClose }) {
+  const [stats, setStats] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const [eventTypeFilter, setEventTypeFilter] = useState('');
+  const [loading, setLoading] = useState(false);
+  const LIMIT = 30;
+
+  // Load stats. / 加载统计。
+  useEffect(() => {
+    if (!threadId) return;
+    api('/threads/' + threadId + '/audit-stats').then(setStats);
+  }, [threadId]);
+
+  // Load event logs with filters. / 加载带过滤的事件日志。
+  const loadEvents = useCallback((resetOffset) => {
+    if (!threadId) return;
+    const newOffset = resetOffset ? 0 : offset;
+    setLoading(true);
+    let url = '/threads/' + threadId + '/audit-logs?limit=' + LIMIT + '&offset=' + newOffset;
+    if (eventTypeFilter) url += '&eventType=' + encodeURIComponent(eventTypeFilter);
+    api(url).then(r => {
+      if (resetOffset) {
+        setEvents(r.events || []);
+        setOffset(LIMIT);
+      } else {
+        setEvents(prev => [...prev, ...(r.events || [])]);
+        setOffset(newOffset + LIMIT);
+      }
+      setTotal(r.total || 0);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [threadId, offset, eventTypeFilter]);
+
+  useEffect(() => {
+    setEvents([]);
+    setOffset(0);
+    if (threadId) loadEvents(true);
+  }, [threadId, eventTypeFilter]);
+
+  const EVENT_TYPES = [
+    'invocation.created', 'invocation.started', 'invocation.text.delta',
+    'invocation.completed', 'invocation.failed',
+    'session.created', 'session.selected', 'session.sealed', 'session.handoff',
+  ];
+
+  /** Format event type for display / 格式化事件类型用于显示 */
+  function eventIcon(type) {
+    const icons = {
+      'invocation.created': '\u25B6',   // ▶
+      'invocation.started': '\u23F5',   // ⏵
+      'invocation.text.delta': '\u270E', // ✎
+      'invocation.completed': '\u2705', // ✅
+      'invocation.failed': '\u274C',    // ❌
+      'session.created': '\u2728',      // ✨
+      'session.selected': '\u27A1',     // ➡
+      'session.sealed': '\uD83D\uDD12', // 🔒
+      'session.handoff': '\uD83D\uDD04', // 🔄
+    };
+    return icons[type] || '\u25CF';
+  }
+
+  if (!threadId) {
+    return React.createElement('div', { className: 'audit-panel' },
+      React.createElement('div', { className: 'audit-header' },
+        'Audit Log / 审计日志',
+        React.createElement('button', { className: 'btn-back', onClick: onClose }, '\u2190'),
+      ),
+      React.createElement('div', { className: 'audit-content' },
+        React.createElement('div', { className: 'runtime-empty' }, 'No thread selected / 未选择线程'),
+      ),
+    );
+  }
+
+  return React.createElement('div', { className: 'audit-panel' },
+    React.createElement('div', { className: 'audit-header' },
+      'Audit Log / 审计日志',
+      React.createElement('button', { className: 'btn-back', onClick: onClose }, '\u2190'),
+    ),
+    React.createElement('div', { className: 'audit-content' },
+      // Stats grid / 统计网格
+      stats ? React.createElement('div', { className: 'audit-stat-grid' },
+        React.createElement('div', { className: 'audit-stat-card' },
+          React.createElement('div', { className: 'audit-stat-value' }, stats.totalInvocations || 0),
+          React.createElement('div', { className: 'audit-stat-label' }, 'Invocations / 调用'),
+        ),
+        React.createElement('div', { className: 'audit-stat-card' },
+          React.createElement('div', { className: 'audit-stat-value' }, stats.totalEvents || 0),
+          React.createElement('div', { className: 'audit-stat-label' }, 'Events / 事件'),
+        ),
+        React.createElement('div', { className: 'audit-stat-card' },
+          React.createElement('div', { className: 'audit-stat-value' },
+            stats.avgDurationMs ? (stats.avgDurationMs / 1000).toFixed(1) + 's' : '—',
+          ),
+          React.createElement('div', { className: 'audit-stat-label' }, 'Avg Time / 平均耗时'),
+        ),
+        React.createElement('div', { className: 'audit-stat-card' },
+          React.createElement('div', { className: 'audit-stat-value' },
+            (stats.invocationStateCounts || {}).failed || 0,
+          ),
+          React.createElement('div', { className: 'audit-stat-label' }, 'Failures / 失败'),
+        ),
+      ) : null,
+
+      // Filters / 过滤器
+      React.createElement('div', { className: 'audit-filters' },
+        React.createElement('select', {
+          value: eventTypeFilter,
+          onChange: e => setEventTypeFilter(e.target.value),
+        },
+          React.createElement('option', { value: '' }, 'All Events / 所有事件'),
+          EVENT_TYPES.map(t =>
+            React.createElement('option', { key: t, value: t }, t),
+          ),
+        ),
+      ),
+
+      // Event list / 事件列表
+      events.length === 0 && !loading
+        ? React.createElement('div', { className: 'runtime-empty' }, 'No events / 暂无事件')
+        : events.map(function(ev) {
+            return React.createElement('div', { key: ev.id, className: 'audit-event-item' },
+              React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
+                React.createElement('span', { className: 'audit-event-type' },
+                  eventIcon(ev.eventType) + ' ' + ev.eventType.replace('invocation.', '').replace('session.', 's:'),
+                ),
+                React.createElement('span', { className: 'audit-event-time' },
+                  new Date(ev.createdAt).toLocaleTimeString(),
+                ),
+              ),
+              React.createElement('div', { className: 'audit-event-detail' },
+                'inv:' + (ev.invocationId || '').substring(0, 8) +
+                (ev.sessionId ? ' sess:' + ev.sessionId.substring(0, 8) : ''),
+              ),
+            );
+          }),
+
+      // Load more / 加载更多
+      events.length < total
+        ? React.createElement('div', { className: 'audit-load-more' },
+            React.createElement('button', {
+              onClick: () => loadEvents(false),
+              disabled: loading,
+            }, loading ? '...' : 'Load More / 加载更多 (' + (total - events.length) + ')'),
+          )
+        : null,
+    ),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// WorkspaceBindingBadge — shows/edits workspace path for a thread
+// 工作空间绑定标签 — 显示/编辑线程的工作空间路径
+// Phase 3 Project Directory Binding
+// ---------------------------------------------------------------------------
+function WorkspaceBindingBadge({ threadId }) {
+  const [binding, setBinding] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [editPath, setEditPath] = useState('');
+
+  useEffect(() => {
+    if (!threadId) { setBinding(null); return; }
+    api('/threads/' + threadId + '/workspace-binding').then(r => {
+      setBinding(r.binding);
+    });
+  }, [threadId]);
+
+  function handleSave() {
+    if (!editPath.trim()) {
+      // Delete binding. / 删除绑定。
+      api('/threads/' + threadId + '/workspace-binding', { method: 'DELETE' })
+        .then(() => { setBinding(null); setEditing(false); });
+    } else {
+      api('/threads/' + threadId + '/workspace-binding', {
+        method: 'PUT',
+        body: JSON.stringify({ path: editPath.trim() }),
+      }).then(r => { setBinding(r.binding); setEditing(false); });
+    }
+  }
+
+  function handleEdit() {
+    setEditPath(binding ? binding.path : '');
+    setEditing(true);
+  }
+
+  if (editing) {
+    return React.createElement('div', { className: 'workspace-badge' },
+      '\uD83D\uDCC1',
+      React.createElement('input', {
+        style: { flex: 1, padding: '2px 4px', border: '1px solid #b0c4de', borderRadius: '3px', fontSize: '10px', fontFamily: 'monospace' },
+        value: editPath,
+        onChange: e => setEditPath(e.target.value),
+        placeholder: '/path/to/project',
+        onKeyDown: e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setEditing(false); },
+        autoFocus: true,
+      }),
+      React.createElement('button', {
+        className: 'workspace-badge-edit',
+        onClick: handleSave,
+      }, '\u2713'),
+      React.createElement('button', {
+        className: 'workspace-badge-edit',
+        onClick: () => setEditing(false),
+      }, '\u2717'),
+    );
+  }
+
+  if (!binding) {
+    return React.createElement('div', { className: 'workspace-badge', style: { opacity: 0.5 } },
+      '\uD83D\uDCC1',
+      React.createElement('span', { className: 'workspace-badge-path', style: { fontStyle: 'italic' } }, 'No project dir / 无项目目录'),
+      React.createElement('button', { className: 'workspace-badge-edit', onClick: handleEdit }, 'Set / 设置'),
+    );
+  }
+
+  return React.createElement('div', { className: 'workspace-badge' },
+    '\uD83D\uDCC1',
+    React.createElement('span', { className: 'workspace-badge-path', title: binding.path }, binding.path),
+    React.createElement('button', { className: 'workspace-badge-edit', onClick: handleEdit }, 'Edit / 编辑'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// MemoryPanel — Phase 4 Long-term Memory / 记忆面板
+// ---------------------------------------------------------------------------
+function MemoryPanel({ threadId, onClose }) {
+  const [memories, setMemories] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [total, setTotal] = useState(0);
+  const [scopeFilter, setScopeFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [searchText, setSearchText] = useState('');
+  const [formMode, setFormMode] = useState(null); // null | 'add' | 'edit'
+  const [editMemory, setEditMemory] = useState(null);
+  const LIMIT = 50;
+
+  const CATEGORIES = ['fact', 'preference', 'context', 'user-profile', 'session-insight', 'agent-state'];
+  const SCOPES = ['global', 'thread', 'agent'];
+
+  // Load stats / 加载统计
+  useEffect(() => {
+    api('/memories/stats').then(setStats).catch(() => {});
+  }, []);
+
+  // Load memories with filters / 加载记忆（含过滤）
+  const loadMemories = useCallback(() => {
+    let url = '/memories?limit=' + LIMIT;
+    if (scopeFilter) url += '&scope=' + encodeURIComponent(scopeFilter);
+    if (categoryFilter) url += '&category=' + encodeURIComponent(categoryFilter);
+    if (searchText) url += '&search=' + encodeURIComponent(searchText);
+    if (threadId && scopeFilter === 'thread') url += '&threadId=' + encodeURIComponent(threadId);
+    api(url).then(r => {
+      setMemories(r.memories || []);
+      setTotal(r.total || 0);
+    }).catch(() => {});
+  }, [scopeFilter, categoryFilter, searchText, threadId]);
+
+  useEffect(() => { loadMemories(); }, [loadMemories]);
+
+  // Delete memory / 删除记忆
+  async function handleDelete(id) {
+    if (!confirm('Delete this memory? / 删除这条记忆？')) return;
+    await api('/memories/' + id, { method: 'DELETE' });
+    loadMemories();
+    api('/memories/stats').then(setStats).catch(() => {});
+  }
+
+  // Save memory (create or update) / 保存记忆
+  async function handleSave(data) {
+    if (formMode === 'edit' && editMemory) {
+      await api('/memories/' + editMemory.id, { method: 'PUT', body: JSON.stringify(data) });
+    } else {
+      await api('/memories', { method: 'POST', body: JSON.stringify(data) });
+    }
+    setFormMode(null);
+    setEditMemory(null);
+    loadMemories();
+    api('/memories/stats').then(setStats).catch(() => {});
+  }
+
+  // Category badge color helper / 类别标签颜色
+  function catClass(cat) { return 'memory-card-cat ' + cat; }
+
+  // Scope emoji / 范围标识
+  function scopeIcon(scope) {
+    return scope === 'global' ? '\uD83C\uDF0D' : scope === 'thread' ? '\uD83D\uDCDD' : '\uD83D\uDC31';
+  }
+
+  // -- Form mode: show form / 表单模式
+  if (formMode) {
+    return React.createElement('div', { className: 'memory-panel' },
+      React.createElement('div', { className: 'memory-header' },
+        formMode === 'add' ? 'Add Memory / 添加记忆' : 'Edit Memory / 编辑记忆',
+        React.createElement('button', { className: 'btn-back', onClick: () => { setFormMode(null); setEditMemory(null); } }, '\u2190'),
+      ),
+      React.createElement('div', { className: 'memory-content' },
+        React.createElement(MemoryForm, {
+          initial: editMemory,
+          threadId,
+          onSave: handleSave,
+          onCancel: () => { setFormMode(null); setEditMemory(null); },
+        }),
+      ),
+    );
+  }
+
+  // -- List mode / 列表模式
+  return React.createElement('div', { className: 'memory-panel' },
+    React.createElement('div', { className: 'memory-header' },
+      '\uD83E\uDDE0 Memory / 记忆',
+      React.createElement('button', { className: 'btn-back', onClick: onClose }, '\u2190'),
+    ),
+    React.createElement('div', { className: 'memory-content' },
+      // Stats bar / 统计栏
+      stats ? React.createElement('div', { className: 'memory-stat-bar' },
+        React.createElement('span', { className: 'memory-stat-chip' }, 'Total: ' + stats.total),
+        Object.entries(stats.byScope || {}).map(([k, v]) =>
+          React.createElement('span', { key: k, className: 'memory-stat-chip' }, scopeIcon(k) + ' ' + k + ': ' + v),
+        ),
+      ) : null,
+
+      // Scope tabs / 范围标签
+      React.createElement('div', { className: 'memory-scope-tabs' },
+        React.createElement('span', {
+          className: 'memory-scope-tab' + (!scopeFilter ? ' active' : ''),
+          onClick: () => setScopeFilter(''),
+        }, 'All'),
+        SCOPES.map(s => React.createElement('span', {
+          key: s,
+          className: 'memory-scope-tab' + (scopeFilter === s ? ' active' : ''),
+          onClick: () => setScopeFilter(s),
+        }, scopeIcon(s) + ' ' + s)),
+      ),
+
+      // Filters / 过滤器
+      React.createElement('div', { className: 'memory-filters' },
+        React.createElement('select', {
+          value: categoryFilter,
+          onChange: e => setCategoryFilter(e.target.value),
+        },
+          React.createElement('option', { value: '' }, 'All Categories'),
+          CATEGORIES.map(c => React.createElement('option', { key: c, value: c }, c)),
+        ),
+        React.createElement('input', {
+          placeholder: 'Search / 搜索...',
+          value: searchText,
+          onChange: e => setSearchText(e.target.value),
+        }),
+      ),
+
+      // Add button / 添加按钮
+      React.createElement('button', {
+        className: 'btn-add-agent',
+        onClick: () => setFormMode('add'),
+      }, '+ Add Memory / 添加记忆'),
+
+      // Memory list / 记忆列表
+      memories.length === 0
+        ? React.createElement('div', { className: 'runtime-empty' }, 'No memories / 暂无记忆')
+        : memories.map(m => React.createElement('div', { key: m.id, className: 'memory-card' },
+            React.createElement('div', { className: 'memory-card-header' },
+              React.createElement('span', { className: 'memory-card-key' }, scopeIcon(m.scope) + ' ' + m.key),
+              React.createElement('span', { className: catClass(m.category) }, m.category),
+            ),
+            React.createElement('div', { className: 'memory-card-value' }, m.value),
+            React.createElement('div', { className: 'memory-confidence-bar' },
+              React.createElement('div', {
+                className: 'memory-confidence-fill',
+                style: { width: Math.round(m.confidence * 100) + '%' },
+              }),
+            ),
+            React.createElement('div', { className: 'memory-card-meta' },
+              React.createElement('span', null,
+                m.source + ' | ' + (m.accessCount || 0) + ' uses',
+              ),
+              React.createElement('div', { className: 'memory-card-actions' },
+                React.createElement('button', {
+                  className: 'btn-edit',
+                  onClick: () => { setEditMemory(m); setFormMode('edit'); },
+                }, 'Edit'),
+                React.createElement('button', {
+                  className: 'btn-delete',
+                  onClick: () => handleDelete(m.id),
+                }, 'Del'),
+              ),
+            ),
+          )),
+
+      // Total count / 总数
+      total > memories.length
+        ? React.createElement('div', { style: { textAlign: 'center', fontSize: '11px', color: '#999', padding: '8px' } },
+            'Showing ' + memories.length + ' of ' + total,
+          )
+        : null,
+    ),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MemoryForm — Add/Edit form / 记忆表单
+// ---------------------------------------------------------------------------
+function MemoryForm({ initial, threadId, onSave, onCancel }) {
+  const [scope, setScope] = useState(initial ? initial.scope : 'global');
+  const [category, setCategory] = useState(initial ? initial.category : 'fact');
+  const [key, setKey] = useState(initial ? initial.key : '');
+  const [value, setValue] = useState(initial ? initial.value : '');
+  const [confidence, setConfidence] = useState(initial ? initial.confidence : 1.0);
+  const [tags, setTags] = useState(initial ? (initial.tags || []).join(', ') : '');
+  const [error, setError] = useState('');
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (!key.trim() || !value.trim()) {
+      setError('Key and value are required / 键和值为必填项');
+      return;
+    }
+    const data = {
+      scope,
+      category,
+      key: key.trim(),
+      value: value.trim(),
+      confidence: parseFloat(confidence) || 1.0,
+      tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+    };
+    if (scope === 'thread' && threadId) data.threadId = threadId;
+    onSave(data);
+  }
+
+  const CATEGORIES = ['fact', 'preference', 'context', 'user-profile', 'session-insight', 'agent-state'];
+
+  return React.createElement('form', { className: 'memory-form', onSubmit: handleSubmit },
+    error ? React.createElement('div', { style: { color: '#c33', fontSize: '12px', marginBottom: '8px' } }, error) : null,
+
+    React.createElement('label', null, 'Scope / 范围'),
+    React.createElement('select', { value: scope, onChange: e => setScope(e.target.value), disabled: !!initial },
+      React.createElement('option', { value: 'global' }, '\uD83C\uDF0D Global'),
+      React.createElement('option', { value: 'thread' }, '\uD83D\uDCDD Thread'),
+      React.createElement('option', { value: 'agent' }, '\uD83D\uDC31 Agent'),
+    ),
+
+    React.createElement('label', null, 'Category / 类别'),
+    React.createElement('select', { value: category, onChange: e => setCategory(e.target.value) },
+      CATEGORIES.map(c => React.createElement('option', { key: c, value: c }, c)),
+    ),
+
+    React.createElement('label', null, 'Key / 键'),
+    React.createElement('input', { value: key, onChange: e => setKey(e.target.value), placeholder: 'e.g. user_name', disabled: !!initial }),
+
+    React.createElement('label', null, 'Value / 值'),
+    React.createElement('textarea', { value: value, onChange: e => setValue(e.target.value), placeholder: 'The actual memory content...' }),
+
+    React.createElement('label', null, 'Confidence / 置信度: ' + (parseFloat(confidence) * 100).toFixed(0) + '%'),
+    React.createElement('input', { type: 'range', min: '0', max: '1', step: '0.05', value: confidence, onChange: e => setConfidence(e.target.value) }),
+
+    React.createElement('label', null, 'Tags / 标签 (comma-separated)'),
+    React.createElement('input', { value: tags, onChange: e => setTags(e.target.value), placeholder: 'tag1, tag2' }),
+
+    React.createElement('div', { className: 'memory-form-actions' },
+      React.createElement('button', { type: 'submit', className: 'btn-mem-save' }, initial ? 'Update / 更新' : 'Create / 创建'),
+      React.createElement('button', { type: 'button', className: 'btn-mem-cancel', onClick: onCancel }, 'Cancel / 取消'),
+    ),
   );
 }
 
@@ -357,19 +1544,54 @@ function RuntimePanel({ threadId }) {
 function App() {
   const [threadId, setThreadId] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [rightPanel, setRightPanel] = useState('runtime'); // 'runtime' | 'config' | 'audit' | 'memory'
 
   function handleSent() {
     // Messages arrive via SSE; also refresh thread list title
     setRefreshKey(k => k + 1);
   }
 
+  function toggleRightPanel() {
+    setRightPanel(p => p === 'runtime' ? 'config' : 'runtime');
+  }
+
+  function toggleMemoryPanel() {
+    setRightPanel(p => p === 'memory' ? 'runtime' : 'memory');
+  }
+
+  /** Render right panel based on current selection / 根据当前选择渲染右侧面板 */
+  function renderRightPanel() {
+    if (rightPanel === 'config') {
+      return React.createElement(ConfigCenter, { onClose: () => setRightPanel('runtime') });
+    }
+    if (rightPanel === 'audit') {
+      return React.createElement(AuditPanel, { threadId, onClose: () => setRightPanel('runtime') });
+    }
+    if (rightPanel === 'memory') {
+      return React.createElement(MemoryPanel, { threadId, onClose: () => setRightPanel('runtime') });
+    }
+    // Default: runtime panel with embedded tab bar.
+    // 默认：带内嵌标签栏的运行时面板。
+    return React.createElement(RuntimePanel, { threadId, onSwitchToAudit: () => setRightPanel('audit') });
+  }
+
   return React.createElement('div', { className: 'app' },
-    React.createElement(ThreadList, { currentId: threadId, onSelect: setThreadId, refreshKey }),
+    React.createElement(ThreadList, {
+      currentId: threadId,
+      onSelect: setThreadId,
+      refreshKey,
+      onGearClick: toggleRightPanel,
+      gearActive: rightPanel === 'config',
+      onBrainClick: toggleMemoryPanel,
+      brainActive: rightPanel === 'memory',
+    }),
     React.createElement('div', { className: 'message-area' },
+      // Workspace binding badge / 工作空间绑定标签
+      threadId ? React.createElement(WorkspaceBindingBadge, { threadId }) : null,
       React.createElement(MessageStream, { threadId }),
       React.createElement(MessageInput, { threadId, onSent: handleSent }),
     ),
-    React.createElement(RuntimePanel, { threadId }),
+    renderRightPanel(),
   );
 }
 

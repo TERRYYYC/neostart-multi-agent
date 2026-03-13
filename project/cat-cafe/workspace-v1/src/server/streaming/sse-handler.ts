@@ -106,6 +106,38 @@ function toSsePayload(event: EventLog): SsePayload | null {
         },
       };
 
+    case 'session.sealed':
+      return {
+        event: 'session.sealed',
+        data: {
+          sessionId: payload['sessionId'] ?? event.sessionId,
+          sealedAt: payload['sealedAt'] ?? null,
+        },
+      };
+
+    case 'session.handoff':
+      return {
+        event: 'session.handoff',
+        data: {
+          sealedSessionId: payload['sealedSessionId'] ?? null,
+          newSessionId: payload['newSessionId'] ?? null,
+          triggerReason: payload['triggerReason'] ?? null,
+        },
+      };
+
+    case 'memory.extracted':
+      // Phase 4: forward auto-extracted memory notification.
+      // Phase 4：转发自动提取的记忆通知。
+      return {
+        event: 'memory.extracted',
+        data: {
+          memoryId: payload['memoryId'] ?? null,
+          key: payload['key'] ?? null,
+          value: payload['value'] ?? null,
+          category: payload['category'] ?? null,
+        },
+      };
+
     default:
       // Unknown or raw private event → drop.
       // 未知或原始私有事件 → 丢弃。

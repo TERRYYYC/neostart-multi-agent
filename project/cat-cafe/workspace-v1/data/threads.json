@@ -3,7 +3,7 @@
     "id": "Xlw_WIc5vkXqhz4RCG-X3",
     "title": "Test Thread",
     "createdAt": "2026-03-07T00:10:03.522Z",
-    "updatedAt": "2026-03-07T00:24:09.338Z",
+    "updatedAt": "2026-03-09T12:44:01.205Z",
     "status": "active"
   },
   {
@@ -25,6 +25,85 @@
     "title": "New Thread",
     "createdAt": "2026-03-07T00:23:44.270Z",
     "updatedAt": "2026-03-07T00:24:57.987Z",
+    "status": "active"
+  },
+  {
+    "id": "wzMM7cAOn4njNlvD_5ugn",
+    "title": "New Thread",
+    "createdAt": "2026-03-09T12:44:13.165Z",
+    "updatedAt": "2026-03-09T12:44:13.165Z",
+    "status": "created"
+  },
+  {
+    "id": "xYPqcQyKn59D6Qyh47E_d",
+    "title": "New Thread",
+    "createdAt": "2026-03-09T12:44:14.514Z",
+    "updatedAt": "2026-03-09T12:44:14.514Z",
+    "status": "created"
+  },
+  {
+    "id": "fZ-l_NChSvV5iYiZVADLh",
+    "title": "New Thread",
+    "createdAt": "2026-03-09T20:13:30.780Z",
+    "updatedAt": "2026-03-09T20:53:23.263Z",
+    "status": "active"
+  },
+  {
+    "id": "OII5BmiqVEHxmzHxW6RpI",
+    "title": "New Thread",
+    "createdAt": "2026-03-09T20:58:38.010Z",
+    "updatedAt": "2026-03-09T20:58:38.010Z",
+    "status": "created"
+  },
+  {
+    "id": "c1HffpZ-_AAI5EZUXFS8F",
+    "title": "hi",
+    "createdAt": "2026-03-09T21:12:54.670Z",
+    "updatedAt": "2026-03-09T21:13:15.705Z",
+    "status": "active"
+  },
+  {
+    "id": "pOO_TFOdtMOn8XqKLheNF",
+    "title": "New Thread",
+    "selectedAgentIds": [
+      "cat-birman",
+      "cat-maine"
+    ],
+    "createdAt": "2026-03-09T21:32:09.026Z",
+    "updatedAt": "2026-03-09T21:32:39.316Z",
+    "status": "active"
+  },
+  {
+    "id": "bTPgrSl2qLxWJoewdy105",
+    "title": "New Thread",
+    "selectedAgentIds": [
+      "cat-birman",
+      "cat-ragdoll",
+      "cat-persian"
+    ],
+    "createdAt": "2026-03-09T21:52:23.250Z",
+    "updatedAt": "2026-03-09T22:06:36.568Z",
+    "status": "active"
+  },
+  {
+    "id": "IsNUbHCaBOxBQ_UQHlfV9",
+    "title": "test gemini",
+    "createdAt": "2026-03-09T22:07:10.931Z",
+    "updatedAt": "2026-03-09T22:07:10.966Z",
+    "status": "active"
+  },
+  {
+    "id": "NjxhwosgtbkkdkCdxrTGx",
+    "title": "test gemini",
+    "createdAt": "2026-03-09T22:07:33.973Z",
+    "updatedAt": "2026-03-09T22:10:55.877Z",
+    "status": "active"
+  },
+  {
+    "id": "ph2xXEA2DUJvkgEJjKerv",
+    "title": "Session Chain Test",
+    "createdAt": "2026-03-09T22:37:53.501Z",
+    "updatedAt": "2026-03-09T22:56:42.762Z",
     "status": "active"
   }
 ]

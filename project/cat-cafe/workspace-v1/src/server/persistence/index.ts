@@ -17,6 +17,8 @@ import type {
   AgentInvocation,
   EventLog,
   WorkspaceBinding,
+  SessionHandoff,
+  Memory,
 } from '../../shared/types.js';
 
 // ---------------------------------------------------------------------------
@@ -61,6 +63,14 @@ export const eventLogStore = new JsonFileStore<EventLog>(
 
 export const workspaceBindingStore = new JsonFileStore<WorkspaceBinding>(
   dataFile('workspace-bindings.json'),
+);
+
+export const sessionHandoffStore = new JsonFileStore<SessionHandoff>(
+  dataFile('session-handoffs.json'),
+);
+
+export const memoryStore = new JsonFileStore<Memory>(
+  dataFile('memories.json'),
 );
 
 // Re-export the generic interface for callers that need it.

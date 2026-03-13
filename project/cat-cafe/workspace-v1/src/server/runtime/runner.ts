@@ -30,6 +30,8 @@ export interface RunParams {
   threadId: string;
   profile: AgentProfile;
   taskText: string;
+  /** Current session ID — used to load predecessor context. / 当前 session ID，用于加载前任上下文。 */
+  sessionId?: string;
   /**
    * Called for each streamed text chunk.
    * 每个流式文本块时调用。

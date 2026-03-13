@@ -15,9 +15,7 @@ Do not treat `project/fma` as the active project.
 
 ## Current State
 
-Phase 1 (runtime foundation) is **complete**. All 7 workstreams delivered and verified.
-
-The project is now ready for **Phase 2** (minimal vertical slice).
+Phase 1 (runtime foundation) is **complete**. Phase 2 (minimal vertical slice with real LLM) is **complete**. Phase 3 is **complete** — all 7 features delivered: Config Center v1 + Upgrade (family grouping, provider color dots, NewThreadDialog) + Multi-Provider Support (OpenAI, Gemini, provider router) + Session Chain / Handoff (auto-seal, context summary) + Audit Tools (event log API, stats, AuditPanel UI) + Project Directory Binding (workspace CRUD, inline badge) + A2A Expansion (multi-mention sequential invocations). Phase 4 is **complete** — Long-term Memory delivered: Memory entity (3-level scope), CRUD API, relevance scoring & prompt injection (Anthropic runner), auto-extraction from `[MEMORY:]` markers, MemoryPanel UI, SSE toast notifications.
 
 **Before doing anything, read these documents in order:**
 
@@ -32,14 +30,11 @@ The project is now ready for **Phase 2** (minimal vertical slice).
 
 ### 1. Respect phase boundaries
 
-Before Phase 2 is complete, do not implement:
+Before Phase 5, do not implement:
 
-- full configuration center
-- automatic session chain / handoff
 - export
 - voice
 - notifications
-- long-term memory
 - advanced statistics panels
 - multi-hop A2A
 
@@ -104,7 +99,7 @@ npx tsx src/server/main.ts
 # Open http://localhost:3001
 ```
 
-Server bootstraps automatically: seeds agent profiles → loads registry → starts HTTP.
+Server bootstraps automatically: seeds agent profiles → seeds memories → loads registry → starts HTTP.
 
 ---
 

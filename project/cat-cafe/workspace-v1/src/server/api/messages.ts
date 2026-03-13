@@ -99,24 +99,45 @@ messageRouter.post('/', async (req, res) => {
       updatedAt: new Date().toISOString(),
     });
 
-    // If mentions found, trigger invocation for the first one.
-    // v1: single-agent only.
-    // 如果找到提及，为第一个触发调用。v1 仅支持单 agent。
-    let invocationResult = null;
+    // Phase 3 A2A Expansion: trigger invocations for ALL mentions sequentially.
+    // Phase 3 A2A 扩展：为所有提及按顺序触发调用。
+    //
+    // Fire-and-forget — invocations run sequentially in background.
+    // Each @mention triggers one invocation; they run one after another
+    // to ensure orderly conversation flow and avoid race conditions.
+    // 触发即忘 — 调用在后台按顺序运行。每个 @mention 触发一个调用。
+    let invocationTriggered = false;
+    const triggeredMentions: string[] = [];
     if (mentions.length > 0) {
-      const mention = mentions[0];
-      const taskText = extractTaskText(content, mention);
-      invocationResult = await executeInvocation({
-        threadId,
-        sourceMessageId: userMessage.id,
-        mention,
-        taskText,
+      invocationTriggered = true;
+      triggeredMentions.push(...mentions);
+
+      // Sequential execution: each agent runs after the previous completes.
+      // 顺序执行：每个 agent 在前一个完成后运行。
+      (async () => {
+        for (const mention of mentions) {
+          const taskText = extractTaskText(content, mention);
+          try {
+            await executeInvocation({
+              threadId,
+              sourceMessageId: userMessage.id,
+              mention,
+              taskText,
+            });
+          } catch (err) {
+            console.error('[messages] Background invocation error for @' + mention + ':', err);
+            // Continue with next mention even if one fails. / 即使一个失败也继续下一个。
+          }
+        }
+      })().catch((err) => {
+        console.error('[messages] Sequential invocation chain error:', err);
       });
     }
 
     res.status(201).json({
       userMessage,
-      invocation: invocationResult,
+      invocationTriggered,
+      triggeredMentions,
     });
   } catch (err) {
     res.status(500).json({ error: String(err) });

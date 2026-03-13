@@ -22,6 +22,10 @@ threadRouter.post('/', async (req, res) => {
       id: generateId(),
       title: req.body.title ?? 'New Thread',
       workspacePath: req.body.workspacePath,
+      // Phase 3: cats selected at thread creation / 创建时选择的猫
+      ...(Array.isArray(req.body.selectedAgentIds) && req.body.selectedAgentIds.length > 0
+        ? { selectedAgentIds: req.body.selectedAgentIds }
+        : {}),
       createdAt: now,
       updatedAt: now,
       status: 'created',
